@@ -51,4 +51,27 @@ Errors come as JSON: `{"error": "message"}`.
 - Check the extension on the phone before uploading. Saves a round trip.
 
 ## Full code example
-See the main conversation / ask for `ConverterService.swift` (about 50 lines, uses async/await).
+Copy [ConverterService.swift](ConverterService.swift) into your Xcode project (async/await, about 70 lines).
+
+```swift
+// baseURL: your server. apiKey: the server's API_KEY from .env (NOT the CloudConvert key).
+let service = ConverterService(baseURL: URL(string: "http://localhost:3000")!, apiKey: "change-me")
+
+// pickedURL: the file URL the user chose, e.g. from .fileImporter
+let pdfURL = try await service.convertToPDF(fileURL: pickedURL)
+// give pdfURL to your preview / print code
+```
+
+Example with `.fileImporter` in SwiftUI:
+
+```swift
+.fileImporter(isPresented: $showPicker, allowedContentTypes: [.item]) { result in
+    guard case .success(let pickedURL) = result else { return }
+    Task {
+        do { pdfURL = try await service.convertToPDF(fileURL: pickedURL) }
+        catch { errorText = error.localizedDescription }
+    }
+}
+```
+
+The CloudConvert key stays on the server. The app never sees it.

@@ -1,0 +1,72 @@
+import Foundation
+
+enum ConverterError: LocalizedError {
+    case tooLarge, unsupported, cannotConvert, busy, timeout, server(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .tooLarge: return "File too large (max 25 MB)"
+        case .unsupported: return "Format not supported"
+        case .cannotConvert: return "Can't convert this file"
+        case .busy: return "Server busy, try again in a few seconds"
+        case .timeout: return "Took too long, try again"
+        case .server(let m): return m
+        }
+    }
+}
+
+struct ConverterService {
+    // Simulator: http://localhost:3000 — real iPhone: your Mac's IP or the deployed HTTPS server.
+    let baseURL: URL
+    // Do not commit a real key. Load it from config / Keychain.
+    let apiKey: String
+
+    /// Sends a document to the server and returns the URL of the saved PDF (temp folder).
+    func convertToPDF(fileURL: URL) async throws -> URL {
+        // File from .fileImporter needs security-scoped access.
+        let access = fileURL.startAccessingSecurityScopedResource()
+        defer { if access { fileURL.stopAccessingSecurityScopedResource() } }
+
+        let fileData = try Data(contentsOf: fileURL)
+
+        // Build multipart/form-data body with one field named "file".
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileURL.lastPathComponent)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        body.append(fileData)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+
+        var request = URLRequest(url: baseURL.appendingPathComponent("convert"))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 120
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
+
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.upload(for: request, from: body)
+        } catch let error as URLError where error.code == .timedOut {
+            throw ConverterError.timeout
+        }
+
+        guard let http = response as? HTTPURLResponse else { throw ConverterError.server("No response") }
+        switch http.statusCode {
+        case 200: break
+        case 413: throw ConverterError.tooLarge
+        case 415: throw ConverterError.unsupported
+        case 422: throw ConverterError.cannotConvert
+        case 503: throw ConverterError.busy
+        case 504: throw ConverterError.timeout
+        default:
+            let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String
+            throw ConverterError.server(message ?? "Error \(http.statusCode)")
+        }
+
+        let pdfName = fileURL.deletingPathExtension().lastPathComponent + ".pdf"
+        let outURL = FileManager.default.temporaryDirectory.appendingPathComponent(pdfName)
+        try data.write(to: outURL, options: .atomic)
+        return outURL
+    }
+}
