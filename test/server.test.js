@@ -4,13 +4,14 @@ import { execFileSync } from "node:child_process";
 import { writeFile, mkdtemp, chmod } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import http from "node:http";
 import { createApp } from "../src/app.js";
 
 let server, base;
 const hasSoffice = (() => { try { execFileSync("which", [process.env.SOFFICE_PATH || "soffice"]); return true; } catch { return false; } })();
 
 before(async () => {
-  await new Promise((r) => { server = createApp({ apiKey: "secret", maxMb: 1, maxConcurrent: 2 }).listen(0, r); });
+  await new Promise((r) => { server = createApp({ apiKey: "secret", maxMb: 1, maxUploads: 2 }).listen(0, r); });
   base = `http://localhost:${server.address().port}`;
 });
 after(() => server.close());
@@ -59,4 +60,29 @@ test("timeout kills the whole process group", async () => {
   } finally {
     delete process.env.SOFFICE_PATH; delete process.env.CONVERT_TIMEOUT_MS;
   }
+});
+
+test("server refuses to start without an API key", () => {
+  for (const bad of [undefined, "", "   "]) {
+    assert.throws(() => createApp({ apiKey: bad }), /API_KEY/);
+  }
+});
+
+test("503 with Retry-After when too many uploads are running", async () => {
+  const app = createApp({ apiKey: "secret", maxUploads: 1 });
+  const srv = await new Promise((r) => { const s = app.listen(0, () => r(s)); });
+  const url = `http://localhost:${srv.address().port}/convert`;
+  try {
+    // Hold the only slot open with an upload that never finishes.
+    const hold = http.request(url, { method: "POST", headers: { "x-api-key": "secret", "content-type": "multipart/form-data; boundary=x", "content-length": "1000" } });
+    hold.on("error", () => {});
+    hold.write("--x\r\n");
+    await new Promise((r) => setTimeout(r, 200));
+    const form = new FormData();
+    form.append("file", new Blob(["hi"]), "a.txt");
+    const r = await fetch(url, { method: "POST", body: form, headers: { "x-api-key": "secret" } });
+    assert.equal(r.status, 503);
+    assert.equal(r.headers.get("retry-after"), "5");
+    hold.destroy();
+  } finally { srv.closeAllConnections(); srv.close(); }
 });

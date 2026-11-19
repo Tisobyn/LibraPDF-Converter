@@ -7,7 +7,7 @@ Backend service for the Air Printer "Convertation" feature. Takes a document, re
 
 | Part | What | Version | Why |
 |---|---|---|---|
-| Node.js | Runs the server | 26.10.0 (local) / 20 (Docker image `node:20-bookworm-slim`) | Needs 20 or newer |
+| Node.js | Runs the server | 26.10.0 (local) / 24 LTS (Docker image `node:24-bookworm-slim`) | Needs 22 or newer |
 | Express | Web framework (routes, responses) | 4.22.3 (`^4.21.0`) | Simple HTTP API |
 | Multer | Receives file uploads | 2.5.0 (`^2.5.0`) | Handles `multipart/form-data` |
 | CloudConvert | **First choice.** Online conversion API (v2) | API v2, called with built-in `fetch` | Better quality for hard files, no load on our server |
@@ -34,7 +34,7 @@ Only 2 runtime packages: `express`, `multer`. No dev dependencies. No database. 
 Diagram pages in `docs/diagrams/` are SVG files made by `generate.py` (plain Python 3, no packages) and turned into PDF with LibreOffice: `soffice --headless --convert-to pdf file.svg`. The Mermaid diagrams in `ARCHITECTURE.md` render on GitHub.
 
 ## Config (environment variables)
-`PORT` (3000), `API_KEY`, `MAX_FILE_MB` (25), `MAX_CONCURRENT` (2), `CONVERT_TIMEOUT_MS` (60000), `SOFFICE_PATH`, `CLOUDCONVERT_API_KEY`, `CLOUDCONVERT_SANDBOX`, `CLOUDCONVERT_TIMEOUT_MS`.
+`PORT` (3000), `API_KEY` (required), `MAX_UPLOADS` (4), `MAX_FILE_MB` (25), `MAX_CONCURRENT` (2), `CONVERT_TIMEOUT_MS` (60000), `SOFFICE_PATH`, `CLOUDCONVERT_API_KEY`, `CLOUDCONVERT_SANDBOX`, `CLOUDCONVERT_TIMEOUT_MS`.
 
 ## Infrastructure
 - Not deployed yet. Git is local only (3 commits, no remote).

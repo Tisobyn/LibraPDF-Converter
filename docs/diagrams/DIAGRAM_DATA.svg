@@ -40,7 +40,7 @@
 <text x="470" y="386" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Seconds. Deleted right after, also on errors.</text>
 <text x="40" y="412" text-anchor="start" font-size="12" font-weight="normal" fill="#444">CloudConvert</text>
 <text x="250" y="412" text-anchor="start" font-size="12" font-weight="normal" fill="#444">the document and the PDF</text>
-<text x="470" y="412" text-anchor="start" font-size="12" font-weight="normal" fill="#444">We delete the job right after. If that call fails,</text>
+<text x="470" y="412" text-anchor="start" font-size="12" font-weight="normal" fill="#444">We delete the job right after, and retry if it fails.</text>
 <text x="40" y="438" text-anchor="start" font-size="12" font-weight="normal" fill="#444"></text>
 <text x="250" y="438" text-anchor="start" font-size="12" font-weight="normal" fill="#444"></text>
 <text x="470" y="438" text-anchor="start" font-size="12" font-weight="normal" fill="#444">their own retention applies. Read their terms.</text>

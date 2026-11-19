@@ -17,10 +17,10 @@
 **Tested for real:** `.doc` `.docx` `.rtf` `.ppt` `.xls` `.txt`. Everything else is untested.
 
 ## 2. CloudConvert
-- **Not tested with a real key yet.** Only tested against a fake server. Try it in the sandbox (`CLOUDCONVERT_SANDBOX=true`) first.
+- **Tested with a real (live) key:** a small `.docx` and a 1 MB `.docx` worked. A big 1 MB `.doc` failed at CloudConvert (`EXPORT_FAILED`) and LibreOffice did it. Sandbox is untested.
 - **Costs money** per conversion (and has a free daily limit). If the key runs out of credits, every request falls back to LibreOffice, which is slower and gets 503 under load. Watch your balance.
 - **Slower worst case:** CloudConvert times out after 45 s, then LibreOffice runs. A bad file can take ~100 s before it fails.
-- **Privacy:** user files leave our server and go to CloudConvert. We delete the job right after, but it must be in the Privacy Policy (see `LEGAL_NOTES.md`).
+- **Privacy:** user files leave our server and go to CloudConvert. We delete the job right after (retry if it fails; CloudConvert keeps it at most 24 hours if all retries fail). It must be in the Privacy Policy (see `LEGAL_NOTES.md`).
 - **Two engines = two looks.** The same file can look a bit different depending on which engine did it.
 - If CloudConvert is the main engine, the "fonts" and "format" problems below mostly apply to the fallback only.
 
@@ -36,12 +36,12 @@ The Docker image has only basic fonts. Chinese, Japanese, Korean, Arabic, Hindi 
 | ~1000 | One server is **not** enough. Users get 503 "busy". |
 
 With CloudConvert on, most load goes to them, so our server is much less busy. Only the fallback uses our CPU.
-Why (fallback): each conversion starts LibreOffice (5–10 seconds, 150–500 MB RAM). Default is 2 at the same time (`MAX_CONCURRENT`). The rest get 503.
+Why (fallback): each conversion starts LibreOffice (5–10 seconds, 150–500 MB RAM). Default is 2 at the same time (`MAX_CONCURRENT`). The API also takes only 4 requests at a time (`MAX_UPLOADS`). The rest get 503.
 
 **Fixes, in order:**
 1. Run 2–3 copies of the Docker container.
 2. Add a job queue (Redis / SQS): upload → get job ID → poll for result.
-3. Add rate limit per user / IP.
+3. Add a rate limit per user (Redis). **Not built yet:** one caller can still use up CloudConvert credits.
 4. Keep LibreOffice running between jobs (faster).
 
 ## 5. Security

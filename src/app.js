@@ -13,7 +13,12 @@ function keyMatches(given, expected) {
 export function createApp({
   apiKey = process.env.API_KEY,
   maxMb = Number(process.env.MAX_FILE_MB || 25),
+  maxUploads = Number(process.env.MAX_UPLOADS || 4),
 } = {}) {
+  if (typeof apiKey !== "string" || !apiKey.trim()) {
+    throw new Error("API_KEY is missing or empty. Set a long secret before starting the server.");
+  }
+  let activeRequests = 0;
   const upload = multer({
     dest: path.join(process.env.TMPDIR || "/tmp", "uploads"),
     limits: { fileSize: maxMb * 1024 * 1024, files: 1 },
@@ -24,7 +29,13 @@ export function createApp({
   app.get("/formats", (_req, res) => res.json({ extensions: [...SUPPORTED_EXTENSIONS] }));
 
   app.post("/convert", (req, res, next) => {
-    if (apiKey && !keyMatches(req.get("x-api-key"), apiKey)) return res.status(401).json({ error: "Unauthorized" });
+    if (!keyMatches(req.get("x-api-key"), apiKey)) return res.status(401).json({ error: "Unauthorized" });
+    // Server full: say so before any file is stored.
+    if (activeRequests >= maxUploads) {
+      return res.set("Retry-After", "5").status(503).json({ error: "Server busy, retry shortly" });
+    }
+    activeRequests++;
+    res.on("close", () => { activeRequests--; });
     next();
   }, upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "Send a multipart field named 'file'" });

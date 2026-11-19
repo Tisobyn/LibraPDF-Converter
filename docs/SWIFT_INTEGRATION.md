@@ -8,7 +8,7 @@ You send a document to the server. The server sends back a PDF.
 ## The one request you need
 - **POST** `{BASE_URL}/convert`
 - Body: `multipart/form-data` with one field named **`file`**
-- Header: `X-API-Key: <key>` (only if the server has an API key set)
+- Header: `X-API-Key: <key>` (always required; the server will not start without an `API_KEY`)
 - Success: status **200**, body is the PDF bytes
 - Header `X-Converted-By` in the response: `cloudconvert` or `libreoffice` (for debugging, the app can ignore it)
 - The server tries CloudConvert first and LibreOffice second. The app does not choose.
@@ -29,7 +29,7 @@ You send a document to the server. The server sends back a PDF.
 | 413 | File over 25 MB | "File too large" |
 | 415 | Unsupported or fake file type | "Format not supported" |
 | 422 | Conversion failed (broken or password-protected file) | "Can't convert this file" |
-| 503 | Server busy | Wait 5 seconds, retry |
+| 503 | Server busy (too many uploads). Has a `Retry-After` header | Wait that many seconds (about 5), retry |
 | 504 | Took too long | "Try again" |
 
 Errors come as JSON: `{"error": "message"}`.
@@ -42,7 +42,7 @@ Errors come as JSON: `{"error": "message"}`.
 - **Simulator:** `http://localhost:3000`. Add `NSAllowsLocalNetworking = YES` in Info.plist (App Transport Security).
 - **Real iPhone:** `localhost` does not work. Use your Mac's IP (same Wi-Fi) or the deployed server.
 - **Production:** must be **HTTPS**.
-- Run the server: `npm start` in the converter folder. Needs LibreOffice installed.
+- Run the server: `API_KEY=change-me npm start` in the converter folder (or `npm run start:env` with a `.env` file). Needs LibreOffice installed.
 
 ## Rules
 - Set the request timeout to ~120 seconds. Normal: 5–30 seconds. Worst case (CloudConvert fails, then LibreOffice): up to ~110 seconds.

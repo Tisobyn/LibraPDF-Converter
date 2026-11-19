@@ -1,6 +1,6 @@
 #!/bin/sh
 # Usage: scripts/to-desktop.sh path/to/file.docx   (server must be running: npm start)
-# Saves the PDF to ~/Desktop. Env: URL (default http://localhost:3000), API_KEY (optional).
+# Saves the PDF to ~/Desktop. Env: URL (default http://localhost:3000), API_KEY (required, same as the server).
 [ -f "$1" ] || { echo "Usage: $0 <file>"; exit 1; }
 name=$(basename "$1"); out="$HOME/Desktop/${name%.*}.pdf"
 code=$(curl -s -o "$out" -w "%{http_code}" ${API_KEY:+-H "X-API-Key: $API_KEY"} \

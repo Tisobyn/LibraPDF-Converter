@@ -8,8 +8,8 @@
 ```mermaid
 flowchart TD
     A["iOS / Android app<br/>sends a document"] --> B["POST /convert"]
-    B --> C{"API key OK?<br/>file size OK?"}
-    C -- no --> E1["401 / 413 error"]
+    B --> C{"API key OK?<br/>free slot?<br/>file size OK?"}
+    C -- no --> E1["401 / 503 / 413 error"]
     C -- yes --> D{"Type allowed AND<br/>content matches extension?"}
     D -- no --> E2["415 error"]
     D -- yes --> F{"CloudConvert<br/>key set?"}
@@ -18,9 +18,9 @@ flowchart TD
     G -- "fails / timeout" --> I
     F -- no --> I["Our LibreOffice<br/>(max 60 s)"]
     I -- success --> H
-    I -- "server full" --> E3["503 busy, retry"]
+    I -- "LibreOffice full" --> E3["503 busy, retry"]
     I -- "broken file / timeout" --> E4["422 / 504 error"]
-    H --> J["Delete temp files<br/>(also at CloudConvert)"]
+    H --> J["Delete temp files<br/>(also at CloudConvert, retried)"]
     J --> K["200 + PDF<br/>header X-Converted-By"]
     K --> L["App shows the PDF"]
 ```
@@ -35,11 +35,11 @@ sequenceDiagram
     participant LO as LibreOffice
 
     App->>API: POST /convert (file)
-    API->>API: check key, size, type, content
+    API->>API: check key, free slot, size, type, content
     API->>CC: upload file, convert to PDF
     alt CloudConvert works
         CC-->>API: PDF
-        API->>CC: delete job
+        API->>CC: delete job (retry if it fails)
     else CloudConvert fails or is slow
         API->>LO: convert locally
         LO-->>API: PDF
@@ -67,4 +67,4 @@ sequenceDiagram
 3. CloudConvert → our server (PDF)
 4. Our server → phone (PDF)
 
-Our server and CloudConvert both delete the file right after.
+Our server and CloudConvert both delete the file right after. If the CloudConvert delete fails, we retry. CloudConvert removes it itself after 24 hours.

@@ -60,7 +60,25 @@ export async function convertWithCloudConvert(inputPath, ext) {
     if (pdf.subarray(0, 5).toString() !== "%PDF-") throw new Error("CloudConvert returned a non-PDF");
     return pdf;
   } finally {
-    // Privacy: remove the user's file from CloudConvert right away (best effort).
-    if (jobId) fetch(`${c.api}/v2/jobs/${jobId}`, { method: "DELETE", headers: auth }).catch(() => {});
+    // Privacy: remove the user's file from CloudConvert right away (in the background).
+    if (jobId) deleteJob(c.api, jobId, auth);
   }
+}
+
+/** Deletes the job at CloudConvert. Retries on network errors and 5xx/429. Logs if it still fails. */
+export async function deleteJob(api, jobId, auth, retryMs = Number(process.env.CLOUDCONVERT_DELETE_RETRY_MS || 1000)) {
+  let last = "unknown error";
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(`${api}/v2/jobs/${jobId}`, { method: "DELETE", headers: auth, signal: AbortSignal.timeout(15_000) });
+      if (res.ok || res.status === 404) return true; // 404 = already gone
+      last = `HTTP ${res.status}`;
+      if (res.status < 500 && res.status !== 429) break; // retrying will not help
+    } catch (err) {
+      last = err.message;
+    }
+    if (attempt < 3) await new Promise((r) => setTimeout(r, retryMs * attempt));
+  }
+  console.warn(`CloudConvert job ${jobId} was NOT deleted (${last}). It will be removed by CloudConvert after its retention period (24 hours).`);
+  return false;
 }

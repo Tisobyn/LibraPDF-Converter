@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <img alt="Node" src="https://img.shields.io/badge/Node-%E2%89%A520-339933?logo=node.js&logoColor=white">
+  <img alt="Node" src="https://img.shields.io/badge/Node-%E2%89%A522-339933?logo=node.js&logoColor=white">
   <img alt="Express" src="https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white">
   <img alt="CloudConvert" src="https://img.shields.io/badge/CloudConvert-API%20v2-2f6fdb">
   <img alt="LibreOffice" src="https://img.shields.io/badge/LibreOffice-headless-18A303?logo=libreoffice&logoColor=white">
@@ -25,7 +25,7 @@
 
 The response header `X-Converted-By` says which engine did the job: `cloudconvert` or `libreoffice`.
 
-Files are checked, converted, and **deleted right after** (also at CloudConvert). No database, no accounts.
+Files are checked, converted, and **deleted right after** (also at CloudConvert; if that delete fails we retry, and CloudConvert removes it itself after 24 hours). No database, no accounts.
 
 ## 📚 Supported formats
 
@@ -85,7 +85,7 @@ docker run -p 3000:3000 --read-only --tmpfs /tmp --cap-drop ALL \
 | `GET` | `/formats` | List of supported extensions |
 | `GET` | `/health` | Liveness check → `{"ok": true}` |
 
-If `API_KEY` is set, send it as the `X-API-Key` header.
+Send your `API_KEY` as the `X-API-Key` header. The server will not start without it.
 
 ### Status codes
 
@@ -97,7 +97,7 @@ If `API_KEY` is set, send it as the `X-API-Key` header.
 | `413` | File too large |
 | `415` | Unsupported type, or content doesn't match the extension |
 | `422` | Conversion failed (broken or password-protected file) |
-| `503` | Server busy (LibreOffice full), retry in a few seconds |
+| `503` | Server busy (too many uploads or LibreOffice full), retry after the `Retry-After` seconds |
 | `504` | Conversion timed out |
 
 Errors are JSON: `{"error": "message"}`
@@ -107,7 +107,8 @@ Errors are JSON: `{"error": "message"}`
 | Variable | Default | Description |
 |---|---|---|
 | `PORT` | `3000` | Server port |
-| `API_KEY` | – | If set, clients must send `X-API-Key` |
+| `API_KEY` | – | **Required.** Clients must send it as `X-API-Key`. Server will not start if it is empty |
+| `MAX_UPLOADS` | `4` | Requests handled at the same time. More get `503` before the file is stored |
 | `MAX_FILE_MB` | `25` | Max upload size |
 | `MAX_CONCURRENT` | `2` | Conversions at the same time |
 | `CONVERT_TIMEOUT_MS` | `60000` | Kill a conversion after this time |
@@ -144,14 +145,16 @@ Dockerfile
 
 | Done | Still to do |
 |---|---|
-| ✅ Convert API, validation, tests | ⬜ Try CloudConvert with a real key (sandbox first) |
+| ✅ Convert API, validation, tests | ⬜ Fix big `.doc` failing at CloudConvert |
 | ✅ CloudConvert first, LibreOffice fallback | ⬜ Test .xlsx, .pptx, .odt, .csv, .html and iWork files |
 | ✅ Docs and diagrams | ⬜ Add more fonts to the Dockerfile (CJK, Arabic, emoji) |
-| ✅ Docker image written | ⬜ Build and test the Docker image (Docker not installed here) |
+| ✅ Real CloudConvert test (live key) | ⬜ Rate limit per user (Redis) |
+| ✅ Required `API_KEY`, upload limit, safer LibreOffice | ⬜ Sandbox test of CloudConvert |
+| ✅ Docker image written (Node 24) | ⬜ Build and test the Docker image (Docker not installed here) |
 | | ⬜ Deploy, HTTPS, set `API_KEY` |
 | | ⬜ Connect the iOS and Android apps |
 | | ⬜ Final Privacy Policy and Terms |
-| | ⬜ Push to GitHub (repo is local only) |
+
 
 ## 📖 Docs
 

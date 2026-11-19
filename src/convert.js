@@ -59,10 +59,12 @@ async function convertWithLibreOffice(inputPath, ext) {
     await mkdir(path.join(profileDir, "user"), { recursive: true });
     await writeFile(path.join(profileDir, "user", "registrymodifications.xcu"), PROFILE_SETTINGS);
 
+    // Only pass what LibreOffice needs. No API keys, and its own HOME/TMPDIR per job.
+    const env = { PATH: process.env.PATH, LANG: process.env.LANG || "C.UTF-8", HOME: workDir, TMPDIR: workDir };
     await run(process.env.SOFFICE_PATH || "soffice", [
       `-env:UserInstallation=file://${profileDir}`,
       "--headless", "--norestore", "--convert-to", "pdf", "--outdir", workDir, src,
-    ]);
+    ], env);
     return await readFile(path.join(workDir, "input.pdf"));
   } catch (err) {
     if (err.code === "ENOENT" && err.syscall?.startsWith("spawn")) {
@@ -75,11 +77,11 @@ async function convertWithLibreOffice(inputPath, ext) {
   }
 }
 
-function run(cmd, args) {
+function run(cmd, args, env) {
   const timeoutMs = Number(process.env.CONVERT_TIMEOUT_MS || 60_000);
   return new Promise((resolve, reject) => {
     // detached => own process group, so we can kill soffice AND soffice.bin together.
-    const child = spawn(cmd, args, { stdio: ["ignore", "ignore", "pipe"], detached: true });
+    const child = spawn(cmd, args, { stdio: ["ignore", "ignore", "pipe"], detached: true, env });
     let stderr = "";
     child.stderr.on("data", (d) => (stderr += d));
     const killGroup = () => { try { process.kill(-child.pid, "SIGKILL"); } catch {} };

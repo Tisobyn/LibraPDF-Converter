@@ -7,7 +7,7 @@
 2. The app uploads it to our server over HTTPS.
 3. The server sends it to **CloudConvert** (a third-party service) to convert it. If that fails, our own server converts it.
 4. The PDF comes back to the app.
-5. Our server deletes its copies right after (also after errors). We ask CloudConvert to delete the job right away; CloudConvert's own retention rules apply if that request fails.
+5. Our server deletes its copies right after (also after errors). We ask CloudConvert to delete the job right away and retry if it fails; CloudConvert's own retention rules (up to 24 hours) apply if that still fails.
 
 Our server does **not** save file contents, read them or log them. It has no database and no user accounts.
 

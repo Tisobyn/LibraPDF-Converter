@@ -37,7 +37,7 @@ for k,x in X.items():
     t,s,c=names[k]; b+=box(x-70,100,140,46,t,[s],c)
     b+=f'<line x1="{x}" y1="146" x2="{x}" y2="1000" stroke="#bbb" stroke-width="1.2" stroke-dasharray="4 4"/>\n'
 b+=arrow(110,190,292,190,label="POST /convert (file)")
-b+=f'<rect x="212" y="208" width="160" height="32" rx="6" fill="#fff7e6" stroke="#c98a1b"/>'+T(292,222,"check key, size, type,",10.5,anchor="middle")+T(292,235,"and real content",10.5,anchor="middle")
+b+=f'<rect x="212" y="208" width="160" height="32" rx="6" fill="#fff7e6" stroke="#c98a1b"/>'+T(292,222,"check key, free slot,",10.5,anchor="middle")+T(292,235,"size, type, content",10.5,anchor="middle")
 # normal region
 b+=f'<rect x="60" y="262" width="674" height="136" rx="8" fill="#f2f8ff" stroke="#2f6fdb" stroke-dasharray="6 4"/>'+T(72,280,"Normal: CloudConvert works",12,"bold","#2f6fdb")
 b+=arrow(292,310,474,310,label="create job, upload file")
@@ -56,7 +56,7 @@ b+=T(201,722,"header X-Converted-By",10,"normal","#555","middle")
 b+=f'<rect x="40" y="740" width="140" height="32" rx="6" fill="#eef2f7" stroke="#5b6b82"/>'+T(110,760,"shows the PDF",11,anchor="middle")
 b+=h2(60,840,"Reading the diagram")
 b+=T(60,868,"Solid arrow = a request.  Dashed arrow = an answer.  Blue box = normal path.  Red box = fallback path.",12)
-b+=T(60,890,"If both engines fail, the app gets a JSON error: 422 (broken file), 503 (LibreOffice busy), 504 (too slow).",12)
+b+=T(60,890,"If both engines fail, the app gets a JSON error: 422 (broken file), 503 (server busy), 504 (too slow).",12)
 b+=T(60,912,"The app never chooses the engine. The server decides.",12)
 write("DIAGRAM_SEQUENCE.svg",b)
 
@@ -70,7 +70,7 @@ b+=arrow(210,210,210,240,)
 b+=box(90,242,240,56,"1 server container",["2 GB RAM, 2 CPU","built and working"],"green")
 b+=arrow(160,298,120,336); b+=arrow(260,298,300,336)
 b+=box(50,338,150,50,"CloudConvert",["first"],"blue"); b+=box(220,338,150,50,"LibreOffice",["backup, 2 at a time"],"green")
-b+=T(210,420,"Extra jobs beyond 2 at a time get",11,anchor="middle")+T(210,435,"503 busy, only when CloudConvert fails.",11,anchor="middle")
+b+=T(210,420,"More than 4 requests at a time (MAX_UPLOADS)",11,anchor="middle")+T(210,435,"get 503 busy before the file is stored.",11,anchor="middle")
 # right
 b+=box(484,170,200,40,"Apps",["iOS and Android"],"gray")
 b+=arrow(584,210,584,226)
@@ -94,7 +94,7 @@ for i,r in enumerate(rows):
     for x,s in zip((40,130,250,640),r): b+=T(x,y,s,12,w,"#1a1a1a" if i==0 else "#444")
     y+=28
 b+=h2(40,790,"Why one server is not enough at 1000 users")
-for i,s in enumerate(["Each LibreOffice job takes 5 to 10 seconds and 150 to 500 MB of memory.","The server runs 2 at a time (MAX_CONCURRENT). The rest get 503.","With CloudConvert working, most jobs never touch our CPU. The risk is when it fails or credits run out:","then everything lands on LibreOffice at once.","Fix in order: more servers, then a queue, then a rate limit per user."]):
+for i,s in enumerate(["Each LibreOffice job takes 5 to 10 seconds and 150 to 500 MB of memory.","LibreOffice runs 2 at a time (MAX_CONCURRENT), the API takes 4 requests (MAX_UPLOADS). The rest get 503.","With CloudConvert working, most jobs never touch our CPU. The risk is when it fails or credits run out:","then everything lands on LibreOffice at once.","Fix in order: more servers, then a queue, then a rate limit per user."]):
     b+=T(40,822+i*22,s,12)
 write("DIAGRAM_SCALING.svg",b)
 
@@ -114,7 +114,7 @@ b+=box(542,214,190,46,"Hosting provider",["request logs"],"purple")
 b+=h2(40,320,"What is stored where")
 rows=[("Place","What","How long"),
 ("Our server temp folder","the document and the PDF","Seconds. Deleted right after, also on errors."),
-("CloudConvert","the document and the PDF","We delete the job right after. If that call fails,"),
+("CloudConvert","the document and the PDF","We delete the job right after, and retry if it fails."),
 ("","","their own retention applies. Read their terms."),
 ("Hosting provider logs","IP, time, size, status code","Check your provider. Not the file content."),
 ("Our database","nothing","We have no database and no user accounts.")]

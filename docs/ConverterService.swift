@@ -1,14 +1,14 @@
 import Foundation
 
 enum ConverterError: LocalizedError {
-    case tooLarge, unsupported, cannotConvert, busy, timeout, server(String)
+    case tooLarge, unsupported, cannotConvert, busy(retryAfter: Int), timeout, server(String)
 
     var errorDescription: String? {
         switch self {
         case .tooLarge: return "File too large (max 25 MB)"
         case .unsupported: return "Format not supported"
         case .cannotConvert: return "Can't convert this file"
-        case .busy: return "Server busy, try again in a few seconds"
+        case .busy(let seconds): return "Server busy, try again in \(seconds) seconds"
         case .timeout: return "Took too long, try again"
         case .server(let m): return m
         }
@@ -57,7 +57,9 @@ struct ConverterService {
         case 413: throw ConverterError.tooLarge
         case 415: throw ConverterError.unsupported
         case 422: throw ConverterError.cannotConvert
-        case 503: throw ConverterError.busy
+        case 503:
+            let seconds = Int(http.value(forHTTPHeaderField: "Retry-After") ?? "") ?? 5
+            throw ConverterError.busy(retryAfter: seconds)
         case 504: throw ConverterError.timeout
         default:
             let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String
