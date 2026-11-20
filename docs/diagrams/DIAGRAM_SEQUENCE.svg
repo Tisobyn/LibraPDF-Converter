@@ -53,4 +53,5 @@
 <text x="60" y="868" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Solid arrow = a request.  Dashed arrow = an answer.  Blue box = normal path.  Red box = fallback path.</text>
 <text x="60" y="890" text-anchor="start" font-size="12" font-weight="normal" fill="#444">If both engines fail, the app gets a JSON error: 422 (broken file), 503 (server busy), 504 (too slow).</text>
 <text x="60" y="912" text-anchor="start" font-size="12" font-weight="normal" fill="#444">The app never chooses the engine. The server decides.</text>
+<text x="60" y="934" text-anchor="start" font-size="12" font-weight="normal" fill="#444">On 503 the app waits Retry-After seconds and tries again (2 times). A PDF file is never sent: the app uses it as is.</text>
 </svg>

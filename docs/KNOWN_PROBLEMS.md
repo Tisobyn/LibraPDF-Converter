@@ -14,7 +14,7 @@
 | Broken file | Always fails (422). |
 | Images, `.pdf`, `.md`, `.epub` | Not supported. |
 
-**Tested for real:** `.doc` `.docx` `.rtf` `.ppt` `.xls` `.txt`. Everything else is untested.
+**Tested for real (small files, LibreOffice):** `.doc` `.docx` `.rtf` `.odt` `.txt` `.html` `.csv`. **Not tested yet:** `.xls` `.xlsx` `.ods` `.ppt` `.pptx` `.odp` and iWork files (`.pages` `.numbers` `.key`).
 
 ## 2. CloudConvert
 - **Tested with a real (live) key:** a small `.docx` and a 1 MB `.docx` worked. A big 1 MB `.doc` failed at CloudConvert (`EXPORT_FAILED`) and LibreOffice did it. Sandbox is untested.
@@ -51,6 +51,6 @@ Why (fallback): each conversion starts LibreOffice (5–10 seconds, 150–500 MB
 
 ## 6. Other
 - First conversion after start is slower (~6 s).
-- Max file size: 50 MB (needs a 2 GB server; see README, Docker). Timeout: 60 s. Both can be changed (`MAX_FILE_MB`, `CONVERT_TIMEOUT_MS`).
+- Max file size: 50 MB (needs a 2 GB server; see README, Docker). Timeout: 60 s. Both can be changed (`MAX_FILE_MB`, `CONVERT_TIMEOUT_MS`). If you raise the timeouts, also raise the app timeout (240 s now) and check the hosting limit for waiting on a response.
 - Server is not deployed yet. Phones cannot reach `localhost`.
 - No remote git repo yet (not backed up).

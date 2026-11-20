@@ -58,6 +58,7 @@ b+=h2(60,840,"Reading the diagram")
 b+=T(60,868,"Solid arrow = a request.  Dashed arrow = an answer.  Blue box = normal path.  Red box = fallback path.",12)
 b+=T(60,890,"If both engines fail, the app gets a JSON error: 422 (broken file), 503 (server busy), 504 (too slow).",12)
 b+=T(60,912,"The app never chooses the engine. The server decides.",12)
+b+=T(60,934,"On 503 the app waits Retry-After seconds and tries again (2 times). A PDF file is never sent: the app uses it as is.",12)
 write("DIAGRAM_SEQUENCE.svg",b)
 
 # ---------- Page 3: scaling ----------
@@ -94,7 +95,7 @@ for i,r in enumerate(rows):
     for x,s in zip((40,130,250,640),r): b+=T(x,y,s,12,w,"#1a1a1a" if i==0 else "#444")
     y+=28
 b+=h2(40,790,"Why one server is not enough at 1000 users")
-for i,s in enumerate(["Each LibreOffice job takes 5 to 10 seconds and 150 to 500 MB of memory.","LibreOffice runs 2 at a time (MAX_CONCURRENT), the API takes 10 requests (MAX_UPLOADS). The rest get 503.","With CloudConvert working, most jobs never touch our CPU. The risk is when it fails or credits run out:","then everything lands on LibreOffice at once.","Fix in order: more servers, then a queue, then a rate limit per user."]):
+for i,s in enumerate(["Each LibreOffice job takes 5 to 10 seconds and 150 to 500 MB of memory.","LibreOffice runs 2 at a time (MAX_CONCURRENT), the API takes 10 requests (MAX_UPLOADS). The rest get 503.","With CloudConvert working, most jobs never touch our CPU. The risk is when it fails or credits run out:","then everything lands on LibreOffice at once.","Fix in order: more servers, then a queue, then a rate limit per user. Limits today: 50 MB per file, 10 requests, 500 MB in total."]):
     b+=T(40,822+i*22,s,12)
 write("DIAGRAM_SCALING.svg",b)
 

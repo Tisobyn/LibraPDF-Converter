@@ -80,5 +80,5 @@
 <text x="40" y="844" text-anchor="start" font-size="12" font-weight="normal" fill="#444">LibreOffice runs 2 at a time (MAX_CONCURRENT), the API takes 10 requests (MAX_UPLOADS). The rest get 503.</text>
 <text x="40" y="866" text-anchor="start" font-size="12" font-weight="normal" fill="#444">With CloudConvert working, most jobs never touch our CPU. The risk is when it fails or credits run out:</text>
 <text x="40" y="888" text-anchor="start" font-size="12" font-weight="normal" fill="#444">then everything lands on LibreOffice at once.</text>
-<text x="40" y="910" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Fix in order: more servers, then a queue, then a rate limit per user.</text>
+<text x="40" y="910" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Fix in order: more servers, then a queue, then a rate limit per user. Limits today: 50 MB per file, 10 requests, 500 MB in total.</text>
 </svg>

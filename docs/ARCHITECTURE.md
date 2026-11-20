@@ -18,7 +18,7 @@ flowchart TD
     G -- "fails / timeout" --> I
     F -- no --> I["Our LibreOffice<br/>(max 60 s)"]
     I -- success --> H
-    I -- "LibreOffice full" --> E3["503 busy, retry"]
+    I -- "LibreOffice full" --> E3["503 busy, app retries"]
     I -- "broken file / timeout" --> E4["422 / 504 error"]
     H --> J["Delete temp files<br/>(also at CloudConvert, retried)"]
     J --> K["200 + PDF<br/>header X-Converted-By"]
@@ -52,10 +52,20 @@ sequenceDiagram
 
 | Part | Job |
 |---|---|
-| App (iOS / Android) | Picks the file, uploads it, shows the PDF or the error |
+| App (iOS / Android) | Picks the file, uploads it, shows the PDF or the error. Retries after 503. Does not send PDF files |
 | Our server (Node + Express) | Checks the file, picks the engine, returns the PDF |
 | CloudConvert | **First engine.** Converts online. Costs money per file |
 | LibreOffice | **Backup engine.** Runs on our server. Free, but uses our CPU and RAM |
+
+## Limits (all can be changed)
+
+| Limit | Value | Setting |
+|---|---|---|
+| File size | 50 MB | `MAX_FILE_MB` |
+| Requests at the same time | 10 | `MAX_UPLOADS` |
+| Total size of files at the same time | 500 MB | `MAX_UPLOAD_MB_TOTAL` |
+| LibreOffice jobs at the same time | 2 | `MAX_CONCURRENT` |
+| Over a limit | `503` + `Retry-After` | |
 
 ## Why two engines
 - CloudConvert is the main one: good quality, and our server stays free.

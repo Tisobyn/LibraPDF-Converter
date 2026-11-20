@@ -112,11 +112,11 @@ Errors are JSON: `{"error": "message"}`
 | `MAX_UPLOAD_MB_TOTAL` | `500` | Total size (MB) of files handled at the same time. Over this gets `503`. Lower it if the server has little memory |
 | `MAX_FILE_MB` | `50` | Max upload size. Keep `--memory` in Docker at about 40× this number in MB (50 → 2g), because `/tmp` is in RAM |
 | `MAX_CONCURRENT` | `2` | Conversions at the same time |
-| `CONVERT_TIMEOUT_MS` | `60000` | Kill a conversion after this time |
+| `CONVERT_TIMEOUT_MS` | `60000` | Kill a conversion after this time. Seeing many `504`? Try `90000` |
 | `SOFFICE_PATH` | `soffice` | Path to the LibreOffice binary |
 | `CLOUDCONVERT_API_KEY` | – | Turns on CloudConvert as the first engine. Without it, only LibreOffice is used |
 | `CLOUDCONVERT_SANDBOX` | `false` | `true` = use CloudConvert sandbox (free testing) |
-| `CLOUDCONVERT_TIMEOUT_MS` | `45000` | Give up on CloudConvert after this time, then fall back |
+| `CLOUDCONVERT_TIMEOUT_MS` | `45000` | Give up on CloudConvert after this time, then fall back. Big files may need `90000`. Keep the app timeout (240 s) longer than the two timeouts together |
 
 ## 🧪 Tests
 
@@ -147,10 +147,11 @@ Dockerfile
 | Done | Still to do |
 |---|---|
 | ✅ Convert API, validation, tests | ⬜ Fix big `.doc` failing at CloudConvert |
-| ✅ CloudConvert first, LibreOffice fallback | ⬜ Test .xlsx, .pptx, .odt, .csv, .html and iWork files |
+| ✅ CloudConvert first, LibreOffice fallback | ⬜ Test .xlsx, .pptx, .ods, .odp and iWork files (.csv .html .odt .rtf work) |
 | ✅ Docs and diagrams | ⬜ Add more fonts to the Dockerfile (CJK, Arabic, emoji) |
 | ✅ Real CloudConvert test (live key) | ⬜ Rate limit per user (Redis) |
-| ✅ Required `API_KEY`, upload limit, safer LibreOffice | ⬜ Sandbox test of CloudConvert |
+| ✅ Required `API_KEY`, upload limits (count + MB), safer LibreOffice | ⬜ Sandbox test of CloudConvert |
+| ✅ Swift `ConverterService` (retry on 503, PDF skips server) | ⬜ Build it in Xcode and run on a device |
 | ✅ Docker image written (Node 26) | ⬜ Build and test the Docker image (Docker not installed here) |
 | | ⬜ Deploy, HTTPS, set `API_KEY` |
 | | ⬜ Connect the iOS and Android apps |
@@ -162,7 +163,7 @@ Dockerfile
 | File | For |
 |---|---|
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Diagrams: how a request flows. PDF: [AirPrinter-Converter-Diagrams.pdf](docs/AirPrinter-Converter-Diagrams.pdf) |
-| [SWIFT_INTEGRATION.md](docs/SWIFT_INTEGRATION.md) | iOS and Android developers: how to connect |
+| [SWIFT_INTEGRATION.md](docs/SWIFT_INTEGRATION.md) | iOS and Android developers: how to connect. Code: [ConverterService.swift](docs/ConverterService.swift) |
 | [KNOWN_PROBLEMS.md](docs/KNOWN_PROBLEMS.md) | Format, font, scaling and security limits |
 | [TECH_STACK.md](docs/TECH_STACK.md) | What we use and which versions |
 | [LEGAL_NOTES.md](docs/LEGAL_NOTES.md) | What to put in Privacy Policy and Terms |

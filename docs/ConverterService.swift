@@ -63,7 +63,7 @@ struct ConverterService {
 
         var request = URLRequest(url: baseURL.appendingPathComponent("convert"))
         request.httpMethod = "POST"
-        request.timeoutInterval = 120
+        request.timeoutInterval = 240 // must be longer than the server worst case (CLOUDCONVERT_TIMEOUT_MS + CONVERT_TIMEOUT_MS)
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
 

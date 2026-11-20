@@ -45,7 +45,8 @@ Errors come as JSON: `{"error": "message"}`.
 - Run the server: `API_KEY=change-me npm start` in the converter folder (or `npm run start:env` with a `.env` file). Needs LibreOffice installed.
 
 ## Rules
-- Set the request timeout to ~120 seconds. Normal: 5–30 seconds. Worst case (CloudConvert fails, then LibreOffice): up to ~110 seconds.
+- Set the request timeout to ~240 seconds. Normal: 5–30 seconds. Worst case (CloudConvert fails, then LibreOffice): about 105 seconds with default server timeouts (45 s + 60 s).
+- The app timeout must always be longer than `CLOUDCONVERT_TIMEOUT_MS` + `CONVERT_TIMEOUT_MS` on the server. If you raise those, raise this too.
 - Show a loading spinner.
 - Do not hardcode the API key in committed code.
 - Check the extension on the phone before uploading. Saves a round trip.
