@@ -19,6 +19,9 @@ Node built-ins only (no extra packages): `node:test` (tests), `node:child_proces
 ## Dependencies
 Only 2 runtime packages: `express`, `multer`. No dev dependencies. No database. Two cloud services: CloudConvert (needs an account + `CLOUDCONVERT_API_KEY`; pay per conversion) and Upstash Redis (rate limit counters; free plan; needs `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`).
 
+## Why Express and not NestJS
+Decision: stay with **Express**. The service is small (one main route), and all upload controls from the review are already built here: required API key, limits on requests and megabytes, rate limit per device in Upstash Redis (10 per minute, 500 per day), and tests. NestJS would only add a rewrite. If the team later prefers NestJS, the KMA template has the same Redis rate limiter and the logic in `src/ratelimit.js` can be moved over.
+
 ## Project files
 - `src/server.js` — starts the server
 - `src/app.js` — routes (`/convert`, `/formats`, `/health`)
@@ -26,7 +29,7 @@ Only 2 runtime packages: `express`, `multer`. No dev dependencies. No database. 
 - `src/cloudconvert.js` — CloudConvert client
 - `src/ratelimit.js` — rate limit per device (Upstash Redis)
 - `src/validate.js` — checks file content matches its extension
-- `test/` — 23 tests (`npm test`)
+- `test/` — 25 tests (`npm test`)
 - `.env.example` — all settings; run with `npm run start:env`
 - `scripts/to-desktop.sh` — converts a file and saves the PDF to Desktop
 - `Dockerfile` — image with LibreOffice and fonts

@@ -115,7 +115,7 @@ b+=box(542,214,190,46,"Hosting provider",["request logs"],"purple")
 b+=h2(40,320,"What is stored where")
 rows=[("Place","What","How long"),
 ("Our server temp folder","the document and the PDF","Seconds. Deleted right after, also on errors."),
-("CloudConvert","the document and the PDF","We delete the job right after, and retry if it fails."),
+("CloudConvert","the document and the PDF","Deleted right after. If that fails we retry; max 24 h."),
 ("Upstash Redis","random device ID and request counters (no files)","Up to 2 days."),
 ("","","their own retention applies. Read their terms."),
 ("Hosting provider logs","IP, time, size, status code","Check your provider. Not the file content."),
@@ -129,6 +129,6 @@ b+=h2(40,560,"What we promise")
 for i,s in enumerate(["We do not read the documents.","We do not sell them or use them for ads.","We do not use them to train AI (our server; see CloudConvert terms for theirs).","We keep no copy on our server after the conversion."]):
     b+=T(40,592+i*22,"-  "+s,12)
 b+=h2(40,720,"Must be in the Privacy Policy")
-for i,s in enumerate(["Name CloudConvert as a third party that receives the document.","Name the hosting provider and say how long logs are kept.","Tell the user before the first upload: your file is sent to our server and deleted right after.","App Store privacy form: Other User Content, used for app functionality, not tracking.","Details: docs/LEGAL_NOTES.md. Have a lawyer check the final text."]):
+for i,s in enumerate(["Name CloudConvert as a third party that receives the document.","Name the hosting provider and say how long logs are kept.","Tell the user before the first upload: your file is sent to our server and deleted right after (at most 24 hours at CloudConvert).","App Store privacy form: Other User Content, used for app functionality, not tracking.","Details: docs/LEGAL_NOTES.md. Have a lawyer check the final text."]):
     b+=T(40,752+i*22,"-  "+s,12)
 write("DIAGRAM_DATA.svg",b)

@@ -1,10 +1,11 @@
 import Foundation
 
 enum ConverterError: LocalizedError {
-    case tooLarge, unsupported, cannotConvert, busy(retryAfter: Int), rateLimited(retryAfter: Int), timeout, server(String)
+    case unauthorized, tooLarge, unsupported, cannotConvert, busy(retryAfter: Int), rateLimited(retryAfter: Int), timeout, server(String)
 
     var errorDescription: String? {
         switch self {
+        case .unauthorized: return "The app is not set up correctly (wrong API key). Please contact support."
         case .tooLarge: return "File too large (max 50 MB). Make the images smaller or save it as PDF first."
         case .unsupported: return "Format not supported"
         case .cannotConvert: return "Can't convert this file"
@@ -89,6 +90,7 @@ struct ConverterService {
         guard let http = response as? HTTPURLResponse else { throw ConverterError.server("No response") }
         switch http.statusCode {
         case 200: break
+        case 401: throw ConverterError.unauthorized // wrong or missing API key: a bug or a config mistake, not the user's fault
         case 413: throw ConverterError.tooLarge
         case 415: throw ConverterError.unsupported
         case 422: throw ConverterError.cannotConvert

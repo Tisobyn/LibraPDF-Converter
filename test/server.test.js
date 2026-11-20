@@ -103,3 +103,22 @@ test("503 when the total size of files in progress is over the budget", async ()
     hold.destroy();
   } finally { srv.closeAllConnections(); srv.close(); }
 });
+
+test("the real server program exits before listening when API_KEY is empty or blank", async () => {
+  const { spawnSync } = await import("node:child_process");
+  for (const bad of ["", "   "]) {
+    const r = spawnSync(process.execPath, ["src/server.js"], {
+      env: { PATH: process.env.PATH, API_KEY: bad, RATE_LIMIT_DISABLED: "true", PORT: "0" },
+      encoding: "utf8", timeout: 10_000,
+    });
+    assert.equal(r.status, 1, `exit code for API_KEY="${bad}"`);
+    assert.match(r.stderr, /API_KEY/);
+    assert.doesNotMatch(r.stdout, /listening/);
+  }
+});
+
+test("wrong API key gets 401 before the file is read", async () => {
+  // Big file + wrong key: the answer must be 401, not 413, which proves the upload step never ran.
+  assert.equal((await post("big.txt", "a".repeat(2 * 1024 * 1024), { "x-api-key": "nope" })).status, 401);
+  assert.equal((await post("big.txt", "a".repeat(2 * 1024 * 1024), {})).status, 401);
+});

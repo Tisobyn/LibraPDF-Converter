@@ -47,11 +47,12 @@ Why (fallback): each conversion starts LibreOffice (5–10 seconds, 150–500 MB
 
 ## 5. Security
 - The API key inside the app can be extracted. It only stops casual abuse. Use subscription check or Apple App Attest for real protection.
-- Users upload private documents. Files are deleted right after conversion. Mention this in the privacy policy and App Store privacy details.
+- Users upload private documents. Files are deleted right after conversion on our server and at CloudConvert (at most 24 hours there if the delete call fails). Mention this in the privacy policy and App Store privacy details.
 - Documents are untrusted. Run Docker with the hardened command in `README.md`.
+- **LibreOffice is only half isolated (to do).** It gets only the environment variables it needs (no API keys). But it still runs with the same file permissions as the server, so in theory it can read other uploads in the temp folder. Macros and external links are off, and upload names are random, which lowers the risk. **Fix:** run LibreOffice in a separate container or user that sees only its own job folder, or in a sandbox per job (for example `bubblewrap`; it may not work with `--cap-drop ALL`). Test this in a real container when you deploy.
 
 ## 6. Other
 - First conversion after start is slower (~6 s).
 - Max file size: 50 MB (needs a 2 GB server; see README, Docker). Timeout: 60 s. Both can be changed (`MAX_FILE_MB`, `CONVERT_TIMEOUT_MS`). If you raise the timeouts, also raise the app timeout (240 s now) and check the hosting limit for waiting on a response.
 - Server is not deployed yet. Phones cannot reach `localhost`.
-- No remote git repo yet (not backed up).
+- The code is on GitHub. Push after each commit so it stays backed up.

@@ -130,7 +130,7 @@ Errors are JSON: `{"error": "message"}`
 ```bash
 npm test
 ```
-23 tests (CloudConvert and Redis are tested against fake local servers, no real keys needed). The real-conversion tests are skipped if `soffice` is not installed.
+25 tests (CloudConvert and Redis are tested against fake local servers, no real keys needed). The real-conversion tests are skipped if `soffice` is not installed.
 
 ## 🗂 Project structure
 
@@ -158,6 +158,7 @@ Dockerfile
 | ✅ Docs and diagrams | ⬜ Add more fonts to the Dockerfile (CJK, Arabic, emoji) |
 | ✅ Real CloudConvert test (live key) | ⬜ Stronger caller check (Apple App Attest) |
 | ✅ Rate limit per device (Upstash Redis), tested live | ⬜ Move the Upstash and CloudConvert keys to the hosting settings |
+| | ⬜ Isolate LibreOffice files per job (separate container or sandbox) |
 | ✅ Required `API_KEY`, upload limits (count + MB), safer LibreOffice | ⬜ Sandbox test of CloudConvert |
 | ✅ Swift `ConverterService` (retry on 503, PDF skips server) | ⬜ Build it in Xcode and run on a device |
 | ✅ Docker image written (Node 26) | ⬜ Build and test the Docker image (Docker not installed here) |

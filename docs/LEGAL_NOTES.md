@@ -20,7 +20,7 @@ Our server does **not** save file contents, read them or log them. It has no use
 1. **What we collect when you use Convert:** the document you choose to convert. Technical data: IP address, time of request, file size, errors (in server logs).
 2. **Why:** only to convert your file to PDF.
 3. **Where it goes:** sent to our server (and our hosting provider: name them) over an encrypted connection.
-4. **How long we keep it:** the document is deleted right after conversion. Logs (without file content) are kept for [X days: check hosting settings].
+4. **How long we keep it:** our server deletes the document right after conversion. We ask CloudConvert to delete it at the same time; if that fails, CloudConvert deletes it itself within 24 hours after the job ends. Logs (without file content) are kept for [X days: check hosting settings].
 5. **We do not:** read your documents, sell them, use them for ads or use them to train AI.
 6. **Third parties:** hosting provider [name] and **CloudConvert** (CloudConvert Pty Ltd, converts your file; link to their privacy policy). No other service gets your files.
 7. **Your rights:** (GDPR / CCPA) ask what we hold, ask us to delete it, contact: [email].
@@ -28,7 +28,7 @@ Our server does **not** save file contents, read them or log them. It has no use
 9. **Changes:** how you will tell users about policy updates.
 10. **Contact:** [email].
 
-Tip: the user chooses to send the file. Say clearly in the app, before the first upload: "Your document is sent to our server for conversion and deleted right after."
+Tip: the user chooses to send the file. Say clearly in the app, before the first upload: "Your document is sent to our server for conversion and deleted right after (at most 24 hours at our conversion partner)."
 
 ## App Store "App Privacy" (Connect form)
 - **User Content → Other User Content:** yes, collected (the uploaded document).
