@@ -1,0 +1,43 @@
+# Deploys the SAME revision to both Fly apps (one job per product).
+# Starts only by hand (Actions -> Deploy -> Run workflow) or when you push a tag like v1.0.0.
+# It does NOT deploy on every push to main.
+#
+# Each product has its own GitHub "environment" with its own FLY_API_TOKEN secret,
+# so one product's token never works for the other one. See docs/DEPLOY_FLY.md.
+name: Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+      - run: npm ci
+      - run: npm test   # tests that need LibreOffice are skipped here
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false   # if one product fails, the other one still deploys
+      matrix:
+        include:
+          - product: printer1
+            config: fly.printer1.toml
+          - product: printer-android
+            config: fly.printer-android.toml
+    environment: ${{ matrix.product }}   # holds this product's own FLY_API_TOKEN
+    concurrency: deploy-${{ matrix.product }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only --config ${{ matrix.config }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}

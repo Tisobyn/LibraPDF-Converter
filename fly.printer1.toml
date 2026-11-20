@@ -1,0 +1,40 @@
+# Fly.io settings for Printer 1.
+# CHANGE the app name below to the real one (fly apps create <name>).
+# Secrets (API_KEY, UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, CLOUDCONVERT_API_KEY)
+# are NOT here. Set them with: fly secrets import -a printer1-converter  (see docs/DEPLOY_FLY.md)
+
+app = "printer1-converter"
+primary_region = "fra"   # Frankfurt, close to the Upstash database
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  PORT = "3000"
+  MAX_FILE_MB = "50"
+  MAX_UPLOADS = "10"
+  MAX_UPLOAD_MB_TOTAL = "500"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 8
+    hard_limit = 12
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/health"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "30s"
+
+[[vm]]
+  memory = "2gb"
+  cpu_kind = "shared"
+  cpus = 2

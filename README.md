@@ -163,6 +163,7 @@ src/
   app.js        routes
   convert.js    picks the engine: CloudConvert, then LibreOffice (timeout, locked-down profile)
   cloudconvert.js  CloudConvert API client
+  ratelimit.js  rate limit per device (Upstash Redis)
   validate.js   checks file content matches its extension
 test/           node:test suite
 scripts/        to-desktop.sh helper
@@ -170,6 +171,8 @@ docs/           guides (below)
 docs/diagrams/  diagram sources (SVG) and generate.py
 .env.example    all settings, copy to .env
 Dockerfile
+fly.printer1.toml, fly.printer-android.toml   Fly.io settings, one per product
+.github/workflows/deploy.yml   deploys the same revision to both Fly apps
 ```
 
 ## 🧭 Status
@@ -186,7 +189,7 @@ Dockerfile
 | ✅ Required `API_KEY`, upload limits (count + MB), safer LibreOffice | ⬜ Sandbox test of CloudConvert |
 | ✅ Swift `ConverterService` (retry on 503, PDF skips server) | ⬜ Build it in Xcode and run on a device |
 | ✅ Docker image written (Node 26) | ⬜ Build and test the Docker image (Docker not installed here) |
-| | ⬜ Deploy, HTTPS, set `API_KEY` |
+| ✅ Fly.io files for two apps + deploy workflow (not tested) | ⬜ Get the Fly organization, create both apps, deploy, HTTPS, set secrets |
 | | ⬜ Connect the iOS and Android apps |
 | | ⬜ Final Privacy Policy and Terms |
 
@@ -196,6 +199,7 @@ Dockerfile
 | File | For |
 |---|---|
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Diagrams: how a request flows. PDF: [AirPrinter-Converter-Diagrams.pdf](docs/AirPrinter-Converter-Diagrams.pdf) |
+| [DEPLOY_FLY.md](docs/DEPLOY_FLY.md) | Deploy two separate Fly.io apps (Printer 1 and Printer Android), one workflow for both. Prepared, not tested |
 | [SWIFT_INTEGRATION.md](docs/SWIFT_INTEGRATION.md) | iOS and Android developers: how to connect. Code: [ConverterService.swift](docs/ConverterService.swift) |
 | [KNOWN_PROBLEMS.md](docs/KNOWN_PROBLEMS.md) | Format, font, scaling and security limits |
 | [TECH_STACK.md](docs/TECH_STACK.md) | What we use and which versions |

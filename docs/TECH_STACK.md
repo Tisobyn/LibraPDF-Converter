@@ -31,6 +31,8 @@ Decision: stay with **Express**. The service is small (one main route), and all 
 - `src/validate.js` — checks file content matches its extension
 - `test/` — 25 tests (`npm test`)
 - `.env.example` — all settings; run with `npm run start:env`
+- `fly.printer1.toml`, `fly.printer-android.toml` — Fly.io settings, one app per product (see `docs/DEPLOY_FLY.md`)
+- `.github/workflows/deploy.yml` — deploys the same revision to both apps
 - `scripts/to-desktop.sh` — converts a file and saves the PDF to Desktop
 - `Dockerfile` — image with LibreOffice and fonts
 
