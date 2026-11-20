@@ -2,6 +2,9 @@
 
 > Not legal advice. Have a lawyer check the final text. Facts below are based on how the server works today.
 
+## Two products
+Printer 1 and Printer Android each have their own server, Redis database and CloudConvert account. Write and publish a Privacy Policy and Terms for **each** product, and name the right services for each one.
+
 ## What actually happens with user data
 1. User picks a document in the app.
 2. The app uploads it to our server over HTTPS.
@@ -22,7 +25,7 @@ Our server does **not** save file contents, read them or log them. It has no use
 3. **Where it goes:** sent to our server (and our hosting provider: name them) over an encrypted connection.
 4. **How long we keep it:** our server deletes the document right after conversion. We ask CloudConvert to delete it at the same time; if that fails, CloudConvert deletes it itself within 24 hours after the job ends. Logs (without file content) are kept for [X days: check hosting settings].
 5. **We do not:** read your documents, sell them, use them for ads or use them to train AI.
-6. **Third parties:** hosting provider [name] and **CloudConvert** (CloudConvert Pty Ltd, converts your file; link to their privacy policy). No other service gets your files.
+6. **Third parties:** hosting provider (Fly.io: check the exact company name), **CloudConvert** (CloudConvert Pty Ltd, converts your file; link to their privacy policy) and **Upstash** (keeps a random device ID and request counters for up to 2 days to limit abuse; it never gets your files). No other service gets your files.
 7. **Your rights:** (GDPR / CCPA) ask what we hold, ask us to delete it, contact: [email].
 8. **Children:** [your app's age rule].
 9. **Changes:** how you will tell users about policy updates.

@@ -44,6 +44,7 @@ Errors come as JSON: `{"error": "message"}`.
 ## Testing
 - **Simulator:** `http://localhost:3000`. Add `NSAllowsLocalNetworking = YES` in Info.plist (App Transport Security).
 - **Real iPhone:** `localhost` does not work. Use your Mac's IP (same Wi-Fi) or the deployed server.
+- **Two products:** each product's app uses **only its own** server hostname and `API_KEY` for the whole conversion (upload and PDF). Never fall back to the other product's server. See [DEPLOY_FLY.md](DEPLOY_FLY.md).
 - **Production:** must be **HTTPS**.
 - Run the server: `API_KEY=change-me npm start` in the converter folder (or `npm run start:env` with a `.env` file). Needs LibreOffice installed.
 

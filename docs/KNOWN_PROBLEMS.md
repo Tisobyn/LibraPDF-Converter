@@ -55,5 +55,6 @@ Why (fallback): each conversion starts LibreOffice (5–10 seconds, 150–500 MB
 ## 6. Other
 - First conversion after start is slower (~6 s).
 - Max file size: 50 MB (needs a 2 GB server; see README, Docker). Timeout: 60 s. Both can be changed (`MAX_FILE_MB`, `CONVERT_TIMEOUT_MS`). If you raise the timeouts, also raise the app timeout (240 s now) and check the hosting limit for waiting on a response.
-- Server is not deployed yet. Phones cannot reach `localhost`.
+- Server is not deployed yet. Phones cannot reach `localhost`. Deploy plan: two separate Fly.io apps (Printer 1 and Printer Android), see [DEPLOY_FLY.md](DEPLOY_FLY.md). The files are prepared but **not tested** (no Fly account yet).
+- Each product needs its own `API_KEY`, Upstash database and CloudConvert key. If two products share any of them, they are not isolated.
 - The code is on GitHub. Push after each commit so it stays backed up.

@@ -78,6 +78,9 @@ docker run -p 3000:3000 --read-only --tmpfs /tmp --cap-drop ALL \
 
 > 💡 If you can, also block the container's outbound network at the host or firewall level.
 
+### 🏢 Two products, two servers
+Printer 1 and Printer Android must have separate servers. One repository, two Fly.io apps, each with its own hostname, `API_KEY`, Redis database and CloudConvert key, deployed together by one workflow. See [docs/DEPLOY_FLY.md](docs/DEPLOY_FLY.md).
+
 ### 📦 How big is it, and what hosting do I need?
 
 These are **estimates** (Docker is not installed on the dev Mac, so the image was not built yet). After your first build, run `docker images air-printer-converter` to see the real size.

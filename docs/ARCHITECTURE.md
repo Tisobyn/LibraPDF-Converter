@@ -48,6 +48,19 @@ sequenceDiagram
     API-->>App: 200 + PDF (X-Converted-By)
 ```
 
+## Two products, two separate servers
+
+Printer 1 and Printer Android must not share a public conversion API. We keep **one repository** and deploy the **same revision** to **two Fly.io apps**. Each has its own hostname, `API_KEY`, Upstash Redis database and CloudConvert key. Steps: [DEPLOY_FLY.md](DEPLOY_FLY.md) (prepared, not tested yet).
+
+```mermaid
+flowchart LR
+    REPO["One repository<br/>one revision"] --> CI["GitHub Actions<br/>release matrix"]
+    CI --> F1["Fly app: Printer 1<br/>own hostname, key,<br/>Redis, CloudConvert key"]
+    CI --> F2["Fly app: Printer Android<br/>own hostname, key,<br/>Redis, CloudConvert key"]
+    P1["Printer 1 app"] -- "its own hostname only" --> F1
+    P2["Printer Android app"] -- "its own hostname only" --> F2
+```
+
 ## Who does what
 
 | Part | Job |
