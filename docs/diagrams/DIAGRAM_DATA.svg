@@ -41,15 +41,18 @@
 <text x="40" y="412" text-anchor="start" font-size="12" font-weight="normal" fill="#444">CloudConvert</text>
 <text x="250" y="412" text-anchor="start" font-size="12" font-weight="normal" fill="#444">the document and the PDF</text>
 <text x="470" y="412" text-anchor="start" font-size="12" font-weight="normal" fill="#444">We delete the job right after, and retry if it fails.</text>
-<text x="40" y="438" text-anchor="start" font-size="12" font-weight="normal" fill="#444"></text>
-<text x="250" y="438" text-anchor="start" font-size="12" font-weight="normal" fill="#444"></text>
-<text x="470" y="438" text-anchor="start" font-size="12" font-weight="normal" fill="#444">their own retention applies. Read their terms.</text>
-<text x="40" y="464" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Hosting provider logs</text>
-<text x="250" y="464" text-anchor="start" font-size="12" font-weight="normal" fill="#444">IP, time, size, status code</text>
-<text x="470" y="464" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Check your provider. Not the file content.</text>
-<text x="40" y="490" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Our database</text>
-<text x="250" y="490" text-anchor="start" font-size="12" font-weight="normal" fill="#444">nothing</text>
-<text x="470" y="490" text-anchor="start" font-size="12" font-weight="normal" fill="#444">We have no database and no user accounts.</text>
+<text x="40" y="438" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Upstash Redis</text>
+<text x="250" y="438" text-anchor="start" font-size="12" font-weight="normal" fill="#444">random device ID and request counters (no files)</text>
+<text x="470" y="438" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Up to 2 days.</text>
+<text x="40" y="464" text-anchor="start" font-size="12" font-weight="normal" fill="#444"></text>
+<text x="250" y="464" text-anchor="start" font-size="12" font-weight="normal" fill="#444"></text>
+<text x="470" y="464" text-anchor="start" font-size="12" font-weight="normal" fill="#444">their own retention applies. Read their terms.</text>
+<text x="40" y="490" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Hosting provider logs</text>
+<text x="250" y="490" text-anchor="start" font-size="12" font-weight="normal" fill="#444">IP, time, size, status code</text>
+<text x="470" y="490" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Check your provider. Not the file content.</text>
+<text x="40" y="516" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Our database</text>
+<text x="250" y="516" text-anchor="start" font-size="12" font-weight="normal" fill="#444">nothing</text>
+<text x="470" y="516" text-anchor="start" font-size="12" font-weight="normal" fill="#444">We have no database and no user accounts.</text>
 <text x="40" y="560" text-anchor="start" font-size="15" font-weight="bold" fill="#1a1a1a">What we promise</text>
 <line x1="40" y1="568" x2="734" y2="568" stroke="#ccc"/>
 <text x="40" y="592" text-anchor="start" font-size="12" font-weight="normal" fill="#444">-  We do not read the documents.</text>

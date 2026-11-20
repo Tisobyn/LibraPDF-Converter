@@ -41,7 +41,8 @@ Why (fallback): each conversion starts LibreOffice (5–10 seconds, 150–500 MB
 **Fixes, in order:**
 1. Run 2–3 copies of the Docker container.
 2. Add a job queue (Redis / SQS): upload → get job ID → poll for result.
-3. Add a rate limit per user (Redis). **Not built yet:** one caller can still use up CloudConvert credits.
+3. ~~Add a rate limit per user (Redis).~~ **Done:** 10 per minute and 500 per day per device (`X-Device-ID`, Upstash Redis).
+   **Limit:** the device ID is made by the app, so a determined person can invent new IDs. For a stronger check, add Apple App Attest (iOS) / Play Integrity (Android).
 4. Keep LibreOffice running between jobs (faster).
 
 ## 5. Security

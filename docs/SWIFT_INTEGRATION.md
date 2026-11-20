@@ -9,6 +9,7 @@ You send a document to the server. The server sends back a PDF.
 - **POST** `{BASE_URL}/convert`
 - Body: `multipart/form-data` with one field named **`file`**
 - Header: `X-API-Key: <key>` (always required; the server will not start without an `API_KEY`)
+- Header: `X-Device-ID: <random id>` (always required; 16–64 letters, digits or dashes). The app makes it once per install. `ConverterService` does this for you. The server counts requests per ID.
 - Success: status **200**, body is the PDF bytes
 - Header `X-Converted-By` in the response: `cloudconvert` or `libreoffice` (for debugging, the app can ignore it)
 - The server tries CloudConvert first and LibreOffice second. The app does not choose.
@@ -26,9 +27,11 @@ You send a document to the server. The server sends back a PDF.
 | 200 | Done | PDF |
 | 400 | No file sent | Bug in your code |
 | 401 | Wrong API key | Bug / config |
+| 400 | No file sent, or missing/invalid `X-Device-ID` | Bug in your code |
 | 413 | File over 50 MB | "File too large (max 50 MB). Make the images smaller or save it as PDF first." |
 | 415 | Unsupported or fake file type | "Format not supported" |
 | 422 | Conversion failed (broken or password-protected file) | "Can't convert this file" |
+| 429 | Too many requests from this device (10 per minute, 500 per day). Has a `Retry-After` header | "Too many files in a short time. Try again in N seconds." Do not retry by yourself |
 | 503 | Server busy (too many uploads). Has a `Retry-After` header | `ConverterService` waits that many seconds and retries 2 times by itself. If it still fails, show "Server busy, try again" |
 | 504 | Took too long | "Try again" |
 

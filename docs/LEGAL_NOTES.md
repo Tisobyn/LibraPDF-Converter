@@ -9,7 +9,7 @@
 4. The PDF comes back to the app.
 5. Our server deletes its copies right after (also after errors). We ask CloudConvert to delete the job right away and retry if it fails; CloudConvert's own retention rules (up to 24 hours) apply if that still fails.
 
-Our server does **not** save file contents, read them or log them. It has no database and no user accounts.
+Our server does **not** save file contents, read them or log them. It has no user accounts and no file database. To limit abuse it keeps a random per-install device ID and request counters in Upstash Redis for up to 2 days. Mention this in the Privacy Policy.
 
 **Still check:** your hosting provider (Fly.io, Cloud Run, etc.) may keep request logs (IP address, time, file size, status code). Read their docs and write the real answer in the policy.
 

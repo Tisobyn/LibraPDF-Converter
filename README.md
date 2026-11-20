@@ -49,14 +49,15 @@ export SOFFICE_PATH=/Applications/LibreOffice.app/Contents/MacOS/soffice
 **2. Run the server**
 ```bash
 npm install
-npm start
+API_KEY=change-me RATE_LIMIT_DISABLED=true npm start
 ```
-To use CloudConvert, copy `.env.example` to `.env`, add your key, then run `npm run start:env`.
-Without a key the server uses only LibreOffice.
+That is the quick local test (no Redis, no rate limit). For the real setup, copy `.env.example` to `.env`, fill in `API_KEY`, the two `UPSTASH_REDIS_REST_*` values and (optional) `CLOUDCONVERT_API_KEY`, then run `npm run start:env`.
+Without a CloudConvert key the server uses only LibreOffice.
 
 **3. Convert a file**
 ```bash
-curl -F file=@report.docx http://localhost:3000/convert -o report.pdf
+curl -H "X-API-Key: change-me" -H "X-Device-ID: local-test-device-0001" \
+  -F file=@report.docx http://localhost:3000/convert -o report.pdf
 ```
 
 Or save the result straight to your Desktop:
@@ -85,16 +86,17 @@ docker run -p 3000:3000 --read-only --tmpfs /tmp --cap-drop ALL \
 | `GET` | `/formats` | List of supported extensions |
 | `GET` | `/health` | Liveness check → `{"ok": true}` |
 
-Send your `API_KEY` as the `X-API-Key` header. The server will not start without it.
+Send your `API_KEY` as the `X-API-Key` header and a random per-install ID as the `X-Device-ID` header (16–64 letters, digits or dashes). The server will not start without `API_KEY`.
 
 ### Status codes
 
 | Code | Meaning |
 |---|---|
 | `200` | ✅ PDF returned |
-| `400` | No file sent |
+| `400` | No file sent, or missing/invalid `X-Device-ID` |
 | `401` | Wrong or missing API key |
 | `413` | File too large |
+| `429` | Too many requests from this device (default 10 per minute, 500 per day). Retry after the `Retry-After` seconds |
 | `415` | Unsupported type, or content doesn't match the extension |
 | `422` | Conversion failed (broken or password-protected file) |
 | `503` | Server busy (too many uploads or LibreOffice full), retry after the `Retry-After` seconds |
@@ -108,6 +110,11 @@ Errors are JSON: `{"error": "message"}`
 |---|---|---|
 | `PORT` | `3000` | Server port |
 | `API_KEY` | – | **Required.** Clients must send it as `X-API-Key`. Server will not start if it is empty |
+| `UPSTASH_REDIS_REST_URL` | – | **Required.** Redis address for the rate limit (Upstash dashboard → REST API). Must start with `https://` |
+| `UPSTASH_REDIS_REST_TOKEN` | – | **Required.** Redis token. Keep it secret. The server checks both at startup and will not start if they are wrong |
+| `RATE_LIMIT_PER_MINUTE` | `10` | Requests per device per minute |
+| `RATE_LIMIT_PER_DAY` | `500` | Requests per device per day |
+| `RATE_LIMIT_DISABLED` | – | `true` = no rate limit. **Local testing only** |
 | `MAX_UPLOADS` | `10` | Requests handled at the same time. More get `503` before the file is stored |
 | `MAX_UPLOAD_MB_TOTAL` | `500` | Total size (MB) of files handled at the same time. Over this gets `503`. Lower it if the server has little memory |
 | `MAX_FILE_MB` | `50` | Max upload size. Keep `--memory` in Docker at about 40× this number in MB (50 → 2g), because `/tmp` is in RAM |
@@ -123,7 +130,7 @@ Errors are JSON: `{"error": "message"}`
 ```bash
 npm test
 ```
-13 tests (CloudConvert is tested against a fake local server, no real key needed). The real-conversion tests are skipped if `soffice` is not installed.
+23 tests (CloudConvert and Redis are tested against fake local servers, no real keys needed). The real-conversion tests are skipped if `soffice` is not installed.
 
 ## 🗂 Project structure
 
@@ -149,7 +156,8 @@ Dockerfile
 | ✅ Convert API, validation, tests | ⬜ Fix big `.doc` failing at CloudConvert |
 | ✅ CloudConvert first, LibreOffice fallback | ⬜ Test .xlsx, .pptx, .ods, .odp and iWork files (.csv .html .odt .rtf work) |
 | ✅ Docs and diagrams | ⬜ Add more fonts to the Dockerfile (CJK, Arabic, emoji) |
-| ✅ Real CloudConvert test (live key) | ⬜ Rate limit per user (Redis) |
+| ✅ Real CloudConvert test (live key) | ⬜ Stronger caller check (Apple App Attest) |
+| ✅ Rate limit per device (Upstash Redis), tested live | ⬜ Move the Upstash and CloudConvert keys to the hosting settings |
 | ✅ Required `API_KEY`, upload limits (count + MB), safer LibreOffice | ⬜ Sandbox test of CloudConvert |
 | ✅ Swift `ConverterService` (retry on 503, PDF skips server) | ⬜ Build it in Xcode and run on a device |
 | ✅ Docker image written (Node 26) | ⬜ Build and test the Docker image (Docker not installed here) |

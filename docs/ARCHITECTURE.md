@@ -8,8 +8,8 @@
 ```mermaid
 flowchart TD
     A["iOS / Android app<br/>sends a document"] --> B["POST /convert"]
-    B --> C{"API key OK?<br/>free slot?<br/>file size OK?"}
-    C -- no --> E1["401 / 503 / 413 error"]
+    B --> C{"API key OK?<br/>free slot?<br/>under the<br/>rate limit?<br/>file size OK?"}
+    C -- no --> E1["401 / 503 / 429 / 413 error"]
     C -- yes --> D{"Type allowed AND<br/>content matches extension?"}
     D -- no --> E2["415 error"]
     D -- yes --> F{"CloudConvert<br/>key set?"}
@@ -35,7 +35,7 @@ sequenceDiagram
     participant LO as LibreOffice
 
     App->>API: POST /convert (file)
-    API->>API: check key, free slot, size, type, content
+    API->>API: check key, free slot, rate limit (Redis), size, type, content
     API->>CC: upload file, convert to PDF
     alt CloudConvert works
         CC-->>API: PDF
@@ -54,6 +54,7 @@ sequenceDiagram
 |---|---|
 | App (iOS / Android) | Picks the file, uploads it, shows the PDF or the error. Retries after 503. Does not send PDF files |
 | Our server (Node + Express) | Checks the file, picks the engine, returns the PDF |
+| Upstash Redis | Counts requests per device for the rate limit. Shared by all server copies |
 | CloudConvert | **First engine.** Converts online. Costs money per file |
 | LibreOffice | **Backup engine.** Runs on our server. Free, but uses our CPU and RAM |
 
@@ -65,7 +66,10 @@ sequenceDiagram
 | Requests at the same time | 10 | `MAX_UPLOADS` |
 | Total size of files at the same time | 500 MB | `MAX_UPLOAD_MB_TOTAL` |
 | LibreOffice jobs at the same time | 2 | `MAX_CONCURRENT` |
-| Over a limit | `503` + `Retry-After` | |
+| Requests per device per minute | 10 | `RATE_LIMIT_PER_MINUTE` |
+| Requests per device per day | 500 | `RATE_LIMIT_PER_DAY` |
+| Over a size / count limit | `503` + `Retry-After` | |
+| Over a rate limit | `429` + `Retry-After` | |
 
 ## Why two engines
 - CloudConvert is the main one: good quality, and our server stays free.

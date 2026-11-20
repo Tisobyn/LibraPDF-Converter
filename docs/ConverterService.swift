@@ -1,7 +1,7 @@
 import Foundation
 
 enum ConverterError: LocalizedError {
-    case tooLarge, unsupported, cannotConvert, busy(retryAfter: Int), timeout, server(String)
+    case tooLarge, unsupported, cannotConvert, busy(retryAfter: Int), rateLimited(retryAfter: Int), timeout, server(String)
 
     var errorDescription: String? {
         switch self {
@@ -9,6 +9,7 @@ enum ConverterError: LocalizedError {
         case .unsupported: return "Format not supported"
         case .cannotConvert: return "Can't convert this file"
         case .busy(let seconds): return "Server busy, try again in \(seconds) seconds"
+        case .rateLimited(let seconds): return "Too many files in a short time. Try again in \(seconds) seconds."
         case .timeout: return "Took too long, try again"
         case .server(let m): return m
         }
@@ -20,6 +21,16 @@ struct ConverterService {
     let baseURL: URL
     // Do not commit a real key. Load it from config / Keychain.
     let apiKey: String
+
+    /// A random ID made once per app install. The server uses it to count requests per user.
+    /// Kept in UserDefaults (use the Keychain if you want it to survive a reinstall).
+    static var deviceID: String {
+        let key = "converter.deviceID"
+        if let saved = UserDefaults.standard.string(forKey: key) { return saved }
+        let new = UUID().uuidString
+        UserDefaults.standard.set(new, forKey: key)
+        return new
+    }
 
     /// Sends a document to the server and returns the URL of the saved PDF (temp folder).
     /// If the server is busy (503), waits for `Retry-After` seconds and tries again (up to `retries` times).
@@ -66,6 +77,7 @@ struct ConverterService {
         request.timeoutInterval = 240 // must be longer than the server worst case (CLOUDCONVERT_TIMEOUT_MS + CONVERT_TIMEOUT_MS)
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         request.setValue(apiKey, forHTTPHeaderField: "X-API-Key")
+        request.setValue(Self.deviceID, forHTTPHeaderField: "X-Device-ID")
 
         let (data, response): (Data, URLResponse)
         do {
@@ -80,6 +92,10 @@ struct ConverterService {
         case 413: throw ConverterError.tooLarge
         case 415: throw ConverterError.unsupported
         case 422: throw ConverterError.cannotConvert
+        case 429:
+            // Over the quota (10 per minute, 500 per day). Do not retry by itself: tell the user.
+            let seconds = Int(http.value(forHTTPHeaderField: "Retry-After") ?? "") ?? 60
+            throw ConverterError.rateLimited(retryAfter: seconds)
         case 503:
             let seconds = Int(http.value(forHTTPHeaderField: "Retry-After") ?? "") ?? 5
             throw ConverterError.busy(retryAfter: seconds)

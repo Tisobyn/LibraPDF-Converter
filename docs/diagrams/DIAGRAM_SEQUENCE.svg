@@ -24,7 +24,7 @@
 <line x1="656" y1="146" x2="656" y2="1000" stroke="#bbb" stroke-width="1.2" stroke-dasharray="4 4"/>
 <line x1="110" y1="190" x2="292" y2="190" stroke="#444" stroke-width="1.5" marker-end="url(#a1)"/>
 <text x="201.0" y="184" text-anchor="middle" font-size="10.5" font-weight="normal" fill="#333">POST /convert (file)</text>
-<rect x="212" y="208" width="160" height="32" rx="6" fill="#fff7e6" stroke="#c98a1b"/><text x="292" y="222" text-anchor="middle" font-size="10.5" font-weight="normal" fill="#444">check key, free slot,</text>
+<rect x="212" y="208" width="160" height="32" rx="6" fill="#fff7e6" stroke="#c98a1b"/><text x="292" y="222" text-anchor="middle" font-size="10.5" font-weight="normal" fill="#444">key, free slot, rate limit,</text>
 <text x="292" y="235" text-anchor="middle" font-size="10.5" font-weight="normal" fill="#444">size, type, content</text>
 <rect x="60" y="262" width="674" height="136" rx="8" fill="#f2f8ff" stroke="#2f6fdb" stroke-dasharray="6 4"/><text x="72" y="280" text-anchor="start" font-size="12" font-weight="bold" fill="#2f6fdb">Normal: CloudConvert works</text>
 <line x1="292" y1="310" x2="474" y2="310" stroke="#444" stroke-width="1.5" marker-end="url(#a1)"/>
@@ -51,7 +51,7 @@
 <text x="60" y="840" text-anchor="start" font-size="15" font-weight="bold" fill="#1a1a1a">Reading the diagram</text>
 <line x1="60" y1="848" x2="734" y2="848" stroke="#ccc"/>
 <text x="60" y="868" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Solid arrow = a request.  Dashed arrow = an answer.  Blue box = normal path.  Red box = fallback path.</text>
-<text x="60" y="890" text-anchor="start" font-size="12" font-weight="normal" fill="#444">If both engines fail, the app gets a JSON error: 422 (broken file), 503 (server busy), 504 (too slow).</text>
+<text x="60" y="890" text-anchor="start" font-size="12" font-weight="normal" fill="#444">If both engines fail, the app gets a JSON error: 422 (broken file), 429 (too many requests), 503 (server busy), 504 (too slow).</text>
 <text x="60" y="912" text-anchor="start" font-size="12" font-weight="normal" fill="#444">The app never chooses the engine. The server decides.</text>
 <text x="60" y="934" text-anchor="start" font-size="12" font-weight="normal" fill="#444">On 503 the app waits Retry-After seconds and tries again (2 times). A PDF file is never sent: the app uses it as is.</text>
 </svg>

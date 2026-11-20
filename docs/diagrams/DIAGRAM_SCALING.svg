@@ -32,8 +32,8 @@
 <text x="584.0" y="181.0" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1a1a">Apps</text>
 <text x="584.0" y="198.0" text-anchor="middle" font-size="11" font-weight="normal" fill="#444">iOS and Android</text>
 <line x1="584" y1="210" x2="584" y2="226" stroke="#444" stroke-width="1.5" marker-end="url(#a1)"/>
-<rect x="464" y="228" width="240" height="36" rx="10" fill="#fff7e6" stroke="#c98a1b" stroke-width="1.5" stroke-dasharray="6 4"/>
-<text x="584.0" y="251.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a1a1a">Rate limit per user / IP</text>
+<rect x="464" y="228" width="240" height="36" rx="10" fill="#e9f7ec" stroke="#2e8b45" stroke-width="1.5"/>
+<text x="584.0" y="251.0" text-anchor="middle" font-size="11" font-weight="bold" fill="#1a1a1a">Rate limit per device (Upstash Redis)</text>
 <line x1="584" y1="264" x2="584" y2="282" stroke="#444" stroke-width="1.5" marker-end="url(#a1)"/>
 <rect x="464" y="284" width="240" height="36" rx="10" fill="#fff7e6" stroke="#c98a1b" stroke-width="1.5" stroke-dasharray="6 4"/>
 <text x="584.0" y="307.0" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a1a1a">Load balancer</text>
@@ -68,7 +68,7 @@
 <text x="640" y="668" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Ready</text>
 <text x="40" y="696" text-anchor="start" font-size="12" font-weight="normal" fill="#444">~1000</text>
 <text x="130" y="696" text-anchor="start" font-size="12" font-weight="normal" fill="#444">5 to 20</text>
-<text x="250" y="696" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Several servers, load balancer, rate limit, queue</text>
+<text x="250" y="696" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Several servers, load balancer, queue (rate limit is built)</text>
 <text x="640" y="696" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Not built</text>
 <text x="40" y="724" text-anchor="start" font-size="12" font-weight="normal" fill="#444">any</text>
 <text x="130" y="724" text-anchor="start" font-size="12" font-weight="normal" fill="#444">-</text>
@@ -80,5 +80,5 @@
 <text x="40" y="844" text-anchor="start" font-size="12" font-weight="normal" fill="#444">LibreOffice runs 2 at a time (MAX_CONCURRENT), the API takes 10 requests (MAX_UPLOADS). The rest get 503.</text>
 <text x="40" y="866" text-anchor="start" font-size="12" font-weight="normal" fill="#444">With CloudConvert working, most jobs never touch our CPU. The risk is when it fails or credits run out:</text>
 <text x="40" y="888" text-anchor="start" font-size="12" font-weight="normal" fill="#444">then everything lands on LibreOffice at once.</text>
-<text x="40" y="910" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Fix in order: more servers, then a queue, then a rate limit per user. Limits today: 50 MB per file, 10 requests, 500 MB in total.</text>
+<text x="40" y="910" text-anchor="start" font-size="12" font-weight="normal" fill="#444">Fix in order: more servers, then a queue. The rate limit per device is built. Limits today: 50 MB per file, 10 requests, 500 MB in total.</text>
 </svg>

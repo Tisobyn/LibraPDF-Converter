@@ -17,15 +17,16 @@ Backend service for the Air Printer "Convertation" feature. Takes a document, re
 Node built-ins only (no extra packages): `node:test` (tests), `node:child_process` (starts LibreOffice), `node:crypto` (API key check).
 
 ## Dependencies
-Only 2 runtime packages: `express`, `multer`. No dev dependencies. No database. One cloud service: CloudConvert (needs an account + `CLOUDCONVERT_API_KEY`; pay per conversion).
+Only 2 runtime packages: `express`, `multer`. No dev dependencies. No database. Two cloud services: CloudConvert (needs an account + `CLOUDCONVERT_API_KEY`; pay per conversion) and Upstash Redis (rate limit counters; free plan; needs `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`).
 
 ## Project files
 - `src/server.js` — starts the server
 - `src/app.js` — routes (`/convert`, `/formats`, `/health`)
 - `src/convert.js` — chooses engine, runs LibreOffice, timeout, locked-down profile
 - `src/cloudconvert.js` — CloudConvert client
+- `src/ratelimit.js` — rate limit per device (Upstash Redis)
 - `src/validate.js` — checks file content matches its extension
-- `test/` — 13 tests (`npm test`)
+- `test/` — 23 tests (`npm test`)
 - `.env.example` — all settings; run with `npm run start:env`
 - `scripts/to-desktop.sh` — converts a file and saves the PDF to Desktop
 - `Dockerfile` — image with LibreOffice and fonts
@@ -34,7 +35,7 @@ Only 2 runtime packages: `express`, `multer`. No dev dependencies. No database. 
 Diagram pages in `docs/diagrams/` are SVG files made by `generate.py` (plain Python 3, no packages) and turned into PDF with LibreOffice: `soffice --headless --convert-to pdf file.svg`. The Mermaid diagrams in `ARCHITECTURE.md` render on GitHub.
 
 ## Config (environment variables)
-`PORT` (3000), `API_KEY` (required), `MAX_UPLOADS` (10), `MAX_UPLOAD_MB_TOTAL` (500), `MAX_FILE_MB` (50), `MAX_CONCURRENT` (2), `CONVERT_TIMEOUT_MS` (60000), `SOFFICE_PATH`, `CLOUDCONVERT_API_KEY`, `CLOUDCONVERT_SANDBOX`, `CLOUDCONVERT_TIMEOUT_MS`.
+`PORT` (3000), `API_KEY` (required), `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (required), `RATE_LIMIT_PER_MINUTE` (10), `RATE_LIMIT_PER_DAY` (500), `RATE_LIMIT_DISABLED`, `MAX_UPLOADS` (10), `MAX_UPLOAD_MB_TOTAL` (500), `MAX_FILE_MB` (50), `MAX_CONCURRENT` (2), `CONVERT_TIMEOUT_MS` (60000), `SOFFICE_PATH`, `CLOUDCONVERT_API_KEY`, `CLOUDCONVERT_SANDBOX`, `CLOUDCONVERT_TIMEOUT_MS`.
 
 ## Infrastructure
 - Not deployed yet. Git is local only (3 commits, no remote).

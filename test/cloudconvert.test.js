@@ -28,7 +28,7 @@ before(async () => {
   await new Promise((r) => fake.listen(0, r));
   const u = `http://localhost:${fake.address().port}`;
   Object.assign(process.env, { CLOUDCONVERT_API_KEY: "test-key", CLOUDCONVERT_API_URL: u, CLOUDCONVERT_SYNC_URL: u });
-  await new Promise((r) => { app = createApp({ apiKey: "secret" }).listen(0, r); });
+  await new Promise((r) => { app = createApp({ apiKey: "secret", rateLimiter: null }).listen(0, r); });
   base = `http://localhost:${app.address().port}`;
 });
 after(() => { app.close(); fake.close(); });

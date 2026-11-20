@@ -4,6 +4,7 @@ import { rm } from "node:fs/promises";
 import { timingSafeEqual } from "node:crypto";
 import path from "node:path";
 import { convertToPdf, SUPPORTED_EXTENSIONS } from "./convert.js";
+import { createRateLimiterFromEnv, DEVICE_ID_PATTERN } from "./ratelimit.js";
 
 function keyMatches(given, expected) {
   const a = Buffer.from(given || ""), b = Buffer.from(expected);
@@ -15,6 +16,8 @@ export function createApp({
   maxMb = Number(process.env.MAX_FILE_MB || 50),
   maxUploads = Number(process.env.MAX_UPLOADS || 10),
   maxUploadMb = Number(process.env.MAX_UPLOAD_MB_TOTAL || 500),
+  // Rate limit per caller (Redis). null = off (tests / local). Not given = built from the environment.
+  rateLimiter = createRateLimiterFromEnv(),
 } = {}) {
   if (typeof apiKey !== "string" || !apiKey.trim()) {
     throw new Error("API_KEY is missing or empty. Set a long secret before starting the server.");
@@ -30,7 +33,7 @@ export function createApp({
   app.get("/health", (_req, res) => res.json({ ok: true }));
   app.get("/formats", (_req, res) => res.json({ extensions: [...SUPPORTED_EXTENSIONS] }));
 
-  app.post("/convert", (req, res, next) => {
+  app.post("/convert", async (req, res, next) => {
     if (!keyMatches(req.get("x-api-key"), apiKey)) return res.status(401).json({ error: "Unauthorized" });
     // Size the client says it will send. If missing, assume the biggest allowed file.
     const maxBytes = maxMb * 1024 * 1024;
@@ -43,6 +46,24 @@ export function createApp({
     activeRequests++;
     reservedBytes += size;
     res.on("close", () => { activeRequests--; reservedBytes -= size; });
+
+    // Rate limit per caller. Runs before the file is stored, so a refused request costs us nothing.
+    if (rateLimiter) {
+      const callerId = req.get("x-device-id") || "";
+      if (!DEVICE_ID_PATTERN.test(callerId)) {
+        return res.status(400).json({ error: "Send a header X-Device-ID (16-64 letters, digits or dashes)" });
+      }
+      try {
+        const result = await rateLimiter.hit(callerId);
+        if (!result.allowed) {
+          return res.set("Retry-After", String(result.retryAfter)).status(429).json({ error: "Too many requests, retry later" });
+        }
+      } catch (err) {
+        // Redis is down: refuse (do not let everyone through without a limit).
+        console.error(`Rate limit check failed: ${err.message}`);
+        return res.set("Retry-After", "10").status(503).json({ error: "Service temporarily unavailable, retry shortly" });
+      }
+    }
     next();
   }, upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "Send a multipart field named 'file'" });

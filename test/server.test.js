@@ -11,7 +11,7 @@ let server, base;
 const hasSoffice = (() => { try { execFileSync("which", [process.env.SOFFICE_PATH || "soffice"]); return true; } catch { return false; } })();
 
 before(async () => {
-  await new Promise((r) => { server = createApp({ apiKey: "secret", maxMb: 1, maxUploads: 2 }).listen(0, r); });
+  await new Promise((r) => { server = createApp({ apiKey: "secret", maxMb: 1, maxUploads: 2, rateLimiter: null }).listen(0, r); });
   base = `http://localhost:${server.address().port}`;
 });
 after(() => server.close());
@@ -64,12 +64,12 @@ test("timeout kills the whole process group", async () => {
 
 test("server refuses to start without an API key", () => {
   for (const bad of [undefined, "", "   "]) {
-    assert.throws(() => createApp({ apiKey: bad }), /API_KEY/);
+    assert.throws(() => createApp({ apiKey: bad, rateLimiter: null }), /API_KEY/);
   }
 });
 
 test("503 with Retry-After when too many uploads are running", async () => {
-  const app = createApp({ apiKey: "secret", maxUploads: 1 });
+  const app = createApp({ apiKey: "secret", maxUploads: 1, rateLimiter: null });
   const srv = await new Promise((r) => { const s = app.listen(0, () => r(s)); });
   const url = `http://localhost:${srv.address().port}/convert`;
   try {
@@ -88,7 +88,7 @@ test("503 with Retry-After when too many uploads are running", async () => {
 });
 
 test("503 when the total size of files in progress is over the budget", async () => {
-  const app = createApp({ apiKey: "secret", maxMb: 3, maxUploads: 10, maxUploadMb: 5 });
+  const app = createApp({ apiKey: "secret", maxMb: 3, maxUploads: 10, maxUploadMb: 5, rateLimiter: null });
   const srv = await new Promise((r) => { const s = app.listen(0, () => r(s)); });
   const url = `http://localhost:${srv.address().port}/convert`;
   try {

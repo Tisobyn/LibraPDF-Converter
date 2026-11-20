@@ -37,7 +37,7 @@ for k,x in X.items():
     t,s,c=names[k]; b+=box(x-70,100,140,46,t,[s],c)
     b+=f'<line x1="{x}" y1="146" x2="{x}" y2="1000" stroke="#bbb" stroke-width="1.2" stroke-dasharray="4 4"/>\n'
 b+=arrow(110,190,292,190,label="POST /convert (file)")
-b+=f'<rect x="212" y="208" width="160" height="32" rx="6" fill="#fff7e6" stroke="#c98a1b"/>'+T(292,222,"check key, free slot,",10.5,anchor="middle")+T(292,235,"size, type, content",10.5,anchor="middle")
+b+=f'<rect x="212" y="208" width="160" height="32" rx="6" fill="#fff7e6" stroke="#c98a1b"/>'+T(292,222,"key, free slot, rate limit,",10.5,anchor="middle")+T(292,235,"size, type, content",10.5,anchor="middle")
 # normal region
 b+=f'<rect x="60" y="262" width="674" height="136" rx="8" fill="#f2f8ff" stroke="#2f6fdb" stroke-dasharray="6 4"/>'+T(72,280,"Normal: CloudConvert works",12,"bold","#2f6fdb")
 b+=arrow(292,310,474,310,label="create job, upload file")
@@ -56,7 +56,7 @@ b+=T(201,722,"header X-Converted-By",10,"normal","#555","middle")
 b+=f'<rect x="40" y="740" width="140" height="32" rx="6" fill="#eef2f7" stroke="#5b6b82"/>'+T(110,760,"shows the PDF",11,anchor="middle")
 b+=h2(60,840,"Reading the diagram")
 b+=T(60,868,"Solid arrow = a request.  Dashed arrow = an answer.  Blue box = normal path.  Red box = fallback path.",12)
-b+=T(60,890,"If both engines fail, the app gets a JSON error: 422 (broken file), 503 (server busy), 504 (too slow).",12)
+b+=T(60,890,"If both engines fail, the app gets a JSON error: 422 (broken file), 429 (too many requests), 503 (server busy), 504 (too slow).",12)
 b+=T(60,912,"The app never chooses the engine. The server decides.",12)
 b+=T(60,934,"On 503 the app waits Retry-After seconds and tries again (2 times). A PDF file is never sent: the app uses it as is.",12)
 write("DIAGRAM_SEQUENCE.svg",b)
@@ -75,7 +75,7 @@ b+=T(210,420,"More than 10 requests at a time (MAX_UPLOADS)",11,anchor="middle")
 # right
 b+=box(484,170,200,40,"Apps",["iOS and Android"],"gray")
 b+=arrow(584,210,584,226)
-b+=box(464,228,240,36,"Rate limit per user / IP",c="amber",dash=True,tsize=12)
+b+=box(464,228,240,36,"Rate limit per device (Upstash Redis)",c="green",tsize=11)
 b+=arrow(584,264,584,282)
 b+=box(464,284,240,36,"Load balancer",c="amber",dash=True,tsize=12)
 b+=arrow(560,320,500,346); b+=arrow(584,320,584,346); b+=arrow(608,320,668,346)
@@ -87,7 +87,7 @@ b+=T(584,540,"Dashed = not built yet",11,"normal","#555","middle")
 b+=h2(40,600,"What to expect")
 rows=[("Users","Peak at once","What you need","Status"),
 ("~100","1 to 3","1 small server (2 GB RAM, 2 CPU)","Ready"),
-("~1000","5 to 20","Several servers, load balancer, rate limit, queue","Not built"),
+("~1000","5 to 20","Several servers, load balancer, queue (rate limit is built)","Not built"),
 ("any","-","Enough CloudConvert credits (costs money per file)","Your account")]
 y=640
 for i,r in enumerate(rows):
@@ -95,7 +95,7 @@ for i,r in enumerate(rows):
     for x,s in zip((40,130,250,640),r): b+=T(x,y,s,12,w,"#1a1a1a" if i==0 else "#444")
     y+=28
 b+=h2(40,790,"Why one server is not enough at 1000 users")
-for i,s in enumerate(["Each LibreOffice job takes 5 to 10 seconds and 150 to 500 MB of memory.","LibreOffice runs 2 at a time (MAX_CONCURRENT), the API takes 10 requests (MAX_UPLOADS). The rest get 503.","With CloudConvert working, most jobs never touch our CPU. The risk is when it fails or credits run out:","then everything lands on LibreOffice at once.","Fix in order: more servers, then a queue, then a rate limit per user. Limits today: 50 MB per file, 10 requests, 500 MB in total."]):
+for i,s in enumerate(["Each LibreOffice job takes 5 to 10 seconds and 150 to 500 MB of memory.","LibreOffice runs 2 at a time (MAX_CONCURRENT), the API takes 10 requests (MAX_UPLOADS). The rest get 503.","With CloudConvert working, most jobs never touch our CPU. The risk is when it fails or credits run out:","then everything lands on LibreOffice at once.","Fix in order: more servers, then a queue. The rate limit per device is built. Limits today: 50 MB per file, 10 requests, 500 MB in total."]):
     b+=T(40,822+i*22,s,12)
 write("DIAGRAM_SCALING.svg",b)
 
@@ -116,6 +116,7 @@ b+=h2(40,320,"What is stored where")
 rows=[("Place","What","How long"),
 ("Our server temp folder","the document and the PDF","Seconds. Deleted right after, also on errors."),
 ("CloudConvert","the document and the PDF","We delete the job right after, and retry if it fails."),
+("Upstash Redis","random device ID and request counters (no files)","Up to 2 days."),
 ("","","their own retention applies. Read their terms."),
 ("Hosting provider logs","IP, time, size, status code","Check your provider. Not the file content."),
 ("Our database","nothing","We have no database and no user accounts.")]
