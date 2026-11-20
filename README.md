@@ -78,6 +78,29 @@ docker run -p 3000:3000 --read-only --tmpfs /tmp --cap-drop ALL \
 
 > 💡 If you can, also block the container's outbound network at the host or firewall level.
 
+### 📦 How big is it, and what hosting do I need?
+
+These are **estimates** (Docker is not installed on the dev Mac, so the image was not built yet). After your first build, run `docker images air-printer-converter` to see the real size.
+
+| Part of the image | Size on disk |
+|---|---|
+| Node 26 (Debian slim) | ~250 MB |
+| LibreOffice (Writer, Calc, Impress) | ~500–700 MB |
+| Fonts (Noto incl. Chinese/Japanese/Korean, emoji, Carlito/Caladea) | ~200–300 MB |
+| Our code and packages | ~10 MB |
+| **Total** | **~1.2–1.5 GB** (about 0.5–0.7 GB compressed in a registry) |
+
+Without `fonts-noto-cjk` it is about 100–150 MB smaller (but Chinese, Japanese and Korean show as empty boxes).
+
+| Hosting needs | Value |
+|---|---|
+| RAM | **2 GB** (uploads live in RAM with `--tmpfs /tmp`) |
+| CPU | 2 cores |
+| Disk | 4 GB or more free |
+| Price | about $10–15 per month for a 2 GB plan (check your host) |
+
+CloudConvert and Upstash run on their own servers and use no space here.
+
 ## 🔌 API
 
 | Method | Path | Description |
@@ -155,7 +178,8 @@ Dockerfile
 |---|---|
 | ✅ Convert API, validation, tests | ⬜ Fix big `.doc` failing at CloudConvert |
 | ✅ CloudConvert first, LibreOffice fallback | ⬜ Test .xlsx, .pptx, .ods, .odp and iWork files (.csv .html .odt .rtf work) |
-| ✅ Docs and diagrams | ⬜ Add more fonts to the Dockerfile (CJK, Arabic, emoji) |
+| ✅ Docs and diagrams | ⬜ Check the new fonts after the first Docker build (CJK, Arabic, emoji) |
+| ✅ Fonts added to the Dockerfile (CJK, Arabic, emoji) | ⬜ Measure the real image size after the first build |
 | ✅ Real CloudConvert test (live key) | ⬜ Stronger caller check (Apple App Attest) |
 | ✅ Rate limit per device (Upstash Redis), tested live | ⬜ Move the Upstash and CloudConvert keys to the hosting settings |
 | | ⬜ Isolate LibreOffice files per job (separate container or sandbox) |

@@ -25,8 +25,9 @@
 - If CloudConvert is the main engine, the "fonts" and "format" problems below mostly apply to the fallback only.
 
 ## 3. Fonts
-The Docker image has only basic fonts. Chinese, Japanese, Korean, Arabic, Hindi and emoji show as empty boxes.
-**Fix:** add `fonts-noto-cjk fonts-noto-core fonts-noto-color-emoji fonts-crosextra-carlito` to the Dockerfile.
+The Dockerfile now installs Noto fonts (Chinese, Japanese, Korean, Arabic, Hindi and others), emoji, and Carlito/Caladea (look like Calibri/Cambria in Word files). This only matters when LibreOffice does the work (CloudConvert has its own fonts).
+- **Not tested yet:** Docker is not installed on this Mac, so the image was not built. After the first build, convert a file with Chinese, Arabic and emoji and check there are no empty boxes.
+- The image gets bigger (about 200–300 MB more; `fonts-noto-cjk` is the biggest part, 100–150 MB). Total image: about 1.2–1.5 GB (estimate, see README). Some rare fonts (for example Word's own Arial or Times New Roman) are replaced by look-alikes, so line breaks can differ a little.
 
 ## 4. Too many users
 

@@ -41,8 +41,10 @@ Diagram pages in `docs/diagrams/` are SVG files made by `generate.py` (plain Pyt
 `PORT` (3000), `API_KEY` (required), `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (required), `RATE_LIMIT_PER_MINUTE` (10), `RATE_LIMIT_PER_DAY` (500), `RATE_LIMIT_DISABLED`, `MAX_UPLOADS` (10), `MAX_UPLOAD_MB_TOTAL` (500), `MAX_FILE_MB` (50), `MAX_CONCURRENT` (2), `CONVERT_TIMEOUT_MS` (60000), `SOFFICE_PATH`, `CLOUDCONVERT_API_KEY`, `CLOUDCONVERT_SANDBOX`, `CLOUDCONVERT_TIMEOUT_MS`.
 
 ## Infrastructure
-- Not deployed yet. Git is local only (3 commits, no remote).
-- Needs about 2 GB RAM per container (50 MB files, uploads live in RAM with `--tmpfs /tmp`).
+- Not deployed yet. Code is on GitHub.
+- Needs about 2 GB RAM, 2 CPU and 4 GB or more free disk per container (50 MB files, uploads live in RAM with `--tmpfs /tmp`).
+- Image size (estimate, not built yet): about 1.2–1.5 GB on disk, 0.5–0.7 GB compressed. Parts: Node ~250 MB, LibreOffice ~500–700 MB, fonts ~200–300 MB, our code ~10 MB. Without `fonts-noto-cjk` about 100–150 MB less.
+- Hosting price: about $10–15 per month for a 2 GB plan (check your host). CloudConvert and Upstash run elsewhere.
 
 ## Note on versions
 The Docker image installs LibreOffice from Debian bookworm, which is an older version than the 26.8 on this Mac. Output can differ slightly between them. Test on the Docker image before release.
