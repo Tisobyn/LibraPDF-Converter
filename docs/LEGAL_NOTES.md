@@ -46,7 +46,7 @@ Tip: the user chooses to send the file. Say clearly in the app, before the first
 2. **Your files:** you must have the right to convert them. You keep all rights to them. We take none.
 3. **No illegal or harmful content:** no malware, no files that break the law or others' rights.
 4. **No guarantee of exact result:** layout, fonts, colors and page breaks can differ from the original. Check the PDF before you rely on it.
-5. **Limits:** max file size [25 MB], supported formats only, fair use (we may limit requests).
+5. **Limits:** max file size [50 MB], supported formats only, fair use (we may limit requests).
 6. **Not supported:** password-protected, damaged or very large files may fail.
 7. **Availability:** the service may be down, slow or changed without notice.
 8. **Backups:** we do not store your files, so we cannot recover them. Keep your originals.

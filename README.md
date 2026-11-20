@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <img alt="Node" src="https://img.shields.io/badge/Node-%E2%89%A522-339933?logo=node.js&logoColor=white">
+  <img alt="Node" src="https://img.shields.io/badge/Node-%E2%89%A524-339933?logo=node.js&logoColor=white">
   <img alt="Express" src="https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white">
   <img alt="CloudConvert" src="https://img.shields.io/badge/CloudConvert-API%20v2-2f6fdb">
   <img alt="LibreOffice" src="https://img.shields.io/badge/LibreOffice-headless-18A303?logo=libreoffice&logoColor=white">
@@ -71,7 +71,7 @@ Documents are untrusted input, so run it locked down:
 ```bash
 docker build -t air-printer-converter .
 docker run -p 3000:3000 --read-only --tmpfs /tmp --cap-drop ALL \
-  --security-opt no-new-privileges --memory 1g --cpus 2 --pids-limit 256 \
+  --security-opt no-new-privileges --memory 2g --cpus 2 --pids-limit 256 \
   -e API_KEY=change-me -e CLOUDCONVERT_API_KEY=your-key air-printer-converter
 ```
 
@@ -108,8 +108,9 @@ Errors are JSON: `{"error": "message"}`
 |---|---|---|
 | `PORT` | `3000` | Server port |
 | `API_KEY` | – | **Required.** Clients must send it as `X-API-Key`. Server will not start if it is empty |
-| `MAX_UPLOADS` | `4` | Requests handled at the same time. More get `503` before the file is stored |
-| `MAX_FILE_MB` | `25` | Max upload size |
+| `MAX_UPLOADS` | `10` | Requests handled at the same time. More get `503` before the file is stored |
+| `MAX_UPLOAD_MB_TOTAL` | `500` | Total size (MB) of files handled at the same time. Over this gets `503`. Lower it if the server has little memory |
+| `MAX_FILE_MB` | `50` | Max upload size. Keep `--memory` in Docker at about 40× this number in MB (50 → 2g), because `/tmp` is in RAM |
 | `MAX_CONCURRENT` | `2` | Conversions at the same time |
 | `CONVERT_TIMEOUT_MS` | `60000` | Kill a conversion after this time |
 | `SOFFICE_PATH` | `soffice` | Path to the LibreOffice binary |
@@ -150,7 +151,7 @@ Dockerfile
 | ✅ Docs and diagrams | ⬜ Add more fonts to the Dockerfile (CJK, Arabic, emoji) |
 | ✅ Real CloudConvert test (live key) | ⬜ Rate limit per user (Redis) |
 | ✅ Required `API_KEY`, upload limit, safer LibreOffice | ⬜ Sandbox test of CloudConvert |
-| ✅ Docker image written (Node 24) | ⬜ Build and test the Docker image (Docker not installed here) |
+| ✅ Docker image written (Node 26) | ⬜ Build and test the Docker image (Docker not installed here) |
 | | ⬜ Deploy, HTTPS, set `API_KEY` |
 | | ⬜ Connect the iOS and Android apps |
 | | ⬜ Final Privacy Policy and Terms |

@@ -12,13 +12,15 @@ function keyMatches(given, expected) {
 
 export function createApp({
   apiKey = process.env.API_KEY,
-  maxMb = Number(process.env.MAX_FILE_MB || 25),
-  maxUploads = Number(process.env.MAX_UPLOADS || 4),
+  maxMb = Number(process.env.MAX_FILE_MB || 50),
+  maxUploads = Number(process.env.MAX_UPLOADS || 10),
+  maxUploadMb = Number(process.env.MAX_UPLOAD_MB_TOTAL || 500),
 } = {}) {
   if (typeof apiKey !== "string" || !apiKey.trim()) {
     throw new Error("API_KEY is missing or empty. Set a long secret before starting the server.");
   }
   let activeRequests = 0;
+  let reservedBytes = 0; // total size of files being handled right now
   const upload = multer({
     dest: path.join(process.env.TMPDIR || "/tmp", "uploads"),
     limits: { fileSize: maxMb * 1024 * 1024, files: 1 },
@@ -30,12 +32,17 @@ export function createApp({
 
   app.post("/convert", (req, res, next) => {
     if (!keyMatches(req.get("x-api-key"), apiKey)) return res.status(401).json({ error: "Unauthorized" });
-    // Server full: say so before any file is stored.
-    if (activeRequests >= maxUploads) {
-      return res.set("Retry-After", "5").status(503).json({ error: "Server busy, retry shortly" });
-    }
+    // Size the client says it will send. If missing, assume the biggest allowed file.
+    const maxBytes = maxMb * 1024 * 1024;
+    const declared = Number(req.get("content-length"));
+    const size = Number.isFinite(declared) && declared > 0 ? declared : maxBytes;
+    if (size > maxBytes + 1024 * 1024) return res.status(413).json({ error: "File too large" }); // +1 MB for form overhead
+    // Server full (too many requests, or too many megabytes): say so before any file is stored.
+    const full = activeRequests >= maxUploads || (activeRequests > 0 && reservedBytes + size > maxUploadMb * 1024 * 1024);
+    if (full) return res.set("Retry-After", "5").status(503).json({ error: "Server busy, retry shortly" });
     activeRequests++;
-    res.on("close", () => { activeRequests--; });
+    reservedBytes += size;
+    res.on("close", () => { activeRequests--; reservedBytes -= size; });
     next();
   }, upload.single("file"), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "Send a multipart field named 'file'" });

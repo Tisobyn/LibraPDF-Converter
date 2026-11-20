@@ -86,3 +86,20 @@ test("503 with Retry-After when too many uploads are running", async () => {
     hold.destroy();
   } finally { srv.closeAllConnections(); srv.close(); }
 });
+
+test("503 when the total size of files in progress is over the budget", async () => {
+  const app = createApp({ apiKey: "secret", maxMb: 3, maxUploads: 10, maxUploadMb: 5 });
+  const srv = await new Promise((r) => { const s = app.listen(0, () => r(s)); });
+  const url = `http://localhost:${srv.address().port}/convert`;
+  try {
+    const mb3 = 3 * 1024 * 1024;
+    const hold = http.request(url, { method: "POST", headers: { "x-api-key": "secret", "content-type": "multipart/form-data; boundary=x", "content-length": String(mb3) } });
+    hold.on("error", () => {});
+    hold.write("--x\r\n");
+    await new Promise((r) => setTimeout(r, 200));
+    const send = (bytes) => { const f = new FormData(); f.append("file", new Blob([Buffer.alloc(bytes, 97)]), "a.txt"); return fetch(url, { method: "POST", body: f, headers: { "x-api-key": "secret" } }); };
+    assert.equal((await send(mb3 - 1000)).status, 503, "3 MB + 3 MB is over the 5 MB budget");
+    assert.notEqual((await send(1000)).status, 503, "a small file still fits");
+    hold.destroy();
+  } finally { srv.closeAllConnections(); srv.close(); }
+});

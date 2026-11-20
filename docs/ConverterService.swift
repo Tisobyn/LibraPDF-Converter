@@ -5,7 +5,7 @@ enum ConverterError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .tooLarge: return "File too large (max 25 MB)"
+        case .tooLarge: return "File too large (max 50 MB). Make the images smaller or save it as PDF first."
         case .unsupported: return "Format not supported"
         case .cannotConvert: return "Can't convert this file"
         case .busy(let seconds): return "Server busy, try again in \(seconds) seconds"
@@ -22,7 +22,30 @@ struct ConverterService {
     let apiKey: String
 
     /// Sends a document to the server and returns the URL of the saved PDF (temp folder).
-    func convertToPDF(fileURL: URL) async throws -> URL {
+    /// If the server is busy (503), waits for `Retry-After` seconds and tries again (up to `retries` times).
+    func convertToPDF(fileURL: URL, retries: Int = 2) async throws -> URL {
+        // Already a PDF: nothing to convert, and no size limit.
+        if fileURL.pathExtension.lowercased() == "pdf" {
+            // Copy it to the temp folder: access to the picked file ends when we return.
+            let access = fileURL.startAccessingSecurityScopedResource()
+            defer { if access { fileURL.stopAccessingSecurityScopedResource() } }
+            let copy = FileManager.default.temporaryDirectory.appendingPathComponent(fileURL.lastPathComponent)
+            try? FileManager.default.removeItem(at: copy)
+            try FileManager.default.copyItem(at: fileURL, to: copy)
+            return copy
+        }
+        var attemptsLeft = retries
+        while true {
+            do {
+                return try await convertOnce(fileURL: fileURL)
+            } catch ConverterError.busy(let seconds) where attemptsLeft > 0 {
+                attemptsLeft -= 1
+                try await Task.sleep(nanoseconds: UInt64(max(seconds, 1)) * 1_000_000_000)
+            }
+        }
+    }
+
+    private func convertOnce(fileURL: URL) async throws -> URL {
         // File from .fileImporter needs security-scoped access.
         let access = fileURL.startAccessingSecurityScopedResource()
         defer { if access { fileURL.stopAccessingSecurityScopedResource() } }

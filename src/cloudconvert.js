@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { openAsBlob } from "node:fs";
 
 const settings = () => {
   const sandbox = process.env.CLOUDCONVERT_SANDBOX === "true";
@@ -43,7 +43,7 @@ export async function convertWithCloudConvert(inputPath, ext) {
     if (!form) throw new Error("CloudConvert gave no upload form");
     const body = new FormData();
     for (const [k, v] of Object.entries(form.parameters || {})) body.append(k, v);
-    body.append("file", new Blob([await readFile(inputPath)]), `input${ext}`);
+    body.append("file", await openAsBlob(inputPath), `input${ext}`); // file-backed: not loaded into memory
     await check(await fetch(form.url, { method: "POST", body, signal }), "upload");
 
     const done = (await (await check(await fetch(`${c.sync}/v2/jobs/${jobId}`, { headers: auth, signal }), "wait for job")).json()).data;

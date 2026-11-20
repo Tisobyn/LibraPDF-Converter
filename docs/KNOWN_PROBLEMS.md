@@ -36,7 +36,7 @@ The Docker image has only basic fonts. Chinese, Japanese, Korean, Arabic, Hindi 
 | ~1000 | One server is **not** enough. Users get 503 "busy". |
 
 With CloudConvert on, most load goes to them, so our server is much less busy. Only the fallback uses our CPU.
-Why (fallback): each conversion starts LibreOffice (5–10 seconds, 150–500 MB RAM). Default is 2 at the same time (`MAX_CONCURRENT`). The API also takes only 4 requests at a time (`MAX_UPLOADS`). The rest get 503.
+Why (fallback): each conversion starts LibreOffice (5–10 seconds, 150–500 MB RAM). Default is 2 at the same time (`MAX_CONCURRENT`). The API also takes only 10 requests at a time (`MAX_UPLOADS`) and 500 MB of files at a time (`MAX_UPLOAD_MB_TOTAL`). The rest get 503.
 
 **Fixes, in order:**
 1. Run 2–3 copies of the Docker container.
@@ -51,6 +51,6 @@ Why (fallback): each conversion starts LibreOffice (5–10 seconds, 150–500 MB
 
 ## 6. Other
 - First conversion after start is slower (~6 s).
-- Max file size: 25 MB. Timeout: 60 s. Both can be changed (`MAX_FILE_MB`, `CONVERT_TIMEOUT_MS`).
+- Max file size: 50 MB (needs a 2 GB server; see README, Docker). Timeout: 60 s. Both can be changed (`MAX_FILE_MB`, `CONVERT_TIMEOUT_MS`).
 - Server is not deployed yet. Phones cannot reach `localhost`.
 - No remote git repo yet (not backed up).

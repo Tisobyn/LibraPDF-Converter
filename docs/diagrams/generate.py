@@ -70,7 +70,7 @@ b+=arrow(210,210,210,240,)
 b+=box(90,242,240,56,"1 server container",["2 GB RAM, 2 CPU","built and working"],"green")
 b+=arrow(160,298,120,336); b+=arrow(260,298,300,336)
 b+=box(50,338,150,50,"CloudConvert",["first"],"blue"); b+=box(220,338,150,50,"LibreOffice",["backup, 2 at a time"],"green")
-b+=T(210,420,"More than 4 requests at a time (MAX_UPLOADS)",11,anchor="middle")+T(210,435,"get 503 busy before the file is stored.",11,anchor="middle")
+b+=T(210,420,"More than 10 requests at a time (MAX_UPLOADS)",11,anchor="middle")+T(210,435,"get 503 busy before the file is stored.",11,anchor="middle")
 # right
 b+=box(484,170,200,40,"Apps",["iOS and Android"],"gray")
 b+=arrow(584,210,584,226)
@@ -94,7 +94,7 @@ for i,r in enumerate(rows):
     for x,s in zip((40,130,250,640),r): b+=T(x,y,s,12,w,"#1a1a1a" if i==0 else "#444")
     y+=28
 b+=h2(40,790,"Why one server is not enough at 1000 users")
-for i,s in enumerate(["Each LibreOffice job takes 5 to 10 seconds and 150 to 500 MB of memory.","LibreOffice runs 2 at a time (MAX_CONCURRENT), the API takes 4 requests (MAX_UPLOADS). The rest get 503.","With CloudConvert working, most jobs never touch our CPU. The risk is when it fails or credits run out:","then everything lands on LibreOffice at once.","Fix in order: more servers, then a queue, then a rate limit per user."]):
+for i,s in enumerate(["Each LibreOffice job takes 5 to 10 seconds and 150 to 500 MB of memory.","LibreOffice runs 2 at a time (MAX_CONCURRENT), the API takes 10 requests (MAX_UPLOADS). The rest get 503.","With CloudConvert working, most jobs never touch our CPU. The risk is when it fails or credits run out:","then everything lands on LibreOffice at once.","Fix in order: more servers, then a queue, then a rate limit per user."]):
     b+=T(40,822+i*22,s,12)
 write("DIAGRAM_SCALING.svg",b)
 

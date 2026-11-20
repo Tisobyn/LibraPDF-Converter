@@ -7,7 +7,7 @@ Backend service for the Air Printer "Convertation" feature. Takes a document, re
 
 | Part | What | Version | Why |
 |---|---|---|---|
-| Node.js | Runs the server | 26.10.0 (local) / 24 LTS (Docker image `node:24-bookworm-slim`) | Needs 22 or newer |
+| Node.js | Runs the server | 26.10.0 (local) / 26 LTS (Docker image `node:26-bookworm-slim`) | Needs 24 or newer |
 | Express | Web framework (routes, responses) | 4.22.3 (`^4.21.0`) | Simple HTTP API |
 | Multer | Receives file uploads | 2.5.0 (`^2.5.0`) | Handles `multipart/form-data` |
 | CloudConvert | **First choice.** Online conversion API (v2) | API v2, called with built-in `fetch` | Better quality for hard files, no load on our server |
@@ -34,11 +34,11 @@ Only 2 runtime packages: `express`, `multer`. No dev dependencies. No database. 
 Diagram pages in `docs/diagrams/` are SVG files made by `generate.py` (plain Python 3, no packages) and turned into PDF with LibreOffice: `soffice --headless --convert-to pdf file.svg`. The Mermaid diagrams in `ARCHITECTURE.md` render on GitHub.
 
 ## Config (environment variables)
-`PORT` (3000), `API_KEY` (required), `MAX_UPLOADS` (4), `MAX_FILE_MB` (25), `MAX_CONCURRENT` (2), `CONVERT_TIMEOUT_MS` (60000), `SOFFICE_PATH`, `CLOUDCONVERT_API_KEY`, `CLOUDCONVERT_SANDBOX`, `CLOUDCONVERT_TIMEOUT_MS`.
+`PORT` (3000), `API_KEY` (required), `MAX_UPLOADS` (10), `MAX_UPLOAD_MB_TOTAL` (500), `MAX_FILE_MB` (50), `MAX_CONCURRENT` (2), `CONVERT_TIMEOUT_MS` (60000), `SOFFICE_PATH`, `CLOUDCONVERT_API_KEY`, `CLOUDCONVERT_SANDBOX`, `CLOUDCONVERT_TIMEOUT_MS`.
 
 ## Infrastructure
 - Not deployed yet. Git is local only (3 commits, no remote).
-- Needs about 1–2 GB RAM per container.
+- Needs about 2 GB RAM per container (50 MB files, uploads live in RAM with `--tmpfs /tmp`).
 
 ## Note on versions
 The Docker image installs LibreOffice from Debian bookworm, which is an older version than the 26.8 on this Mac. Output can differ slightly between them. Test on the Docker image before release.

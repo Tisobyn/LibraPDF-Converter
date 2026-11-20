@@ -26,10 +26,10 @@ You send a document to the server. The server sends back a PDF.
 | 200 | Done | PDF |
 | 400 | No file sent | Bug in your code |
 | 401 | Wrong API key | Bug / config |
-| 413 | File over 25 MB | "File too large" |
+| 413 | File over 50 MB | "File too large (max 50 MB). Make the images smaller or save it as PDF first." |
 | 415 | Unsupported or fake file type | "Format not supported" |
 | 422 | Conversion failed (broken or password-protected file) | "Can't convert this file" |
-| 503 | Server busy (too many uploads). Has a `Retry-After` header | Wait that many seconds (about 5), retry |
+| 503 | Server busy (too many uploads). Has a `Retry-After` header | `ConverterService` waits that many seconds and retries 2 times by itself. If it still fails, show "Server busy, try again" |
 | 504 | Took too long | "Try again" |
 
 Errors come as JSON: `{"error": "message"}`.
@@ -49,6 +49,7 @@ Errors come as JSON: `{"error": "message"}`.
 - Show a loading spinner.
 - Do not hardcode the API key in committed code.
 - Check the extension on the phone before uploading. Saves a round trip.
+- PDF files are not sent to the server. `ConverterService` copies them to the temp folder and returns that copy.
 
 ## Full code example
 Copy [ConverterService.swift](ConverterService.swift) into your Xcode project (async/await, about 70 lines).
