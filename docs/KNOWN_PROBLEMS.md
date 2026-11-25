@@ -6,7 +6,7 @@
 |---|---|
 | `.pages` `.numbers` `.key` (Apple) | Often fail or look wrong. Not reliable. Most risky. |
 | `.pptx` `.ppt` | Fonts, charts, SmartArt, animations can shift or flatten. |
-| `.xlsx` `.xls` `.csv` | Wide sheets split across many pages. Huge sheets can time out. Non-UTF-8 CSV shows garbled text. |
+| `.xlsx` `.xls` `.csv` | Wide sheets split across many pages. Huge sheets can time out. Non-UTF-8 CSV shows garbled text. On Fly, LibreOffice garbles even UTF-8 CSV with non-Latin text (Cyrillic, Chinese) (CloudConvert handles it first). |
 | `.docx` `.doc` | Mostly fine. Calibri etc. are replaced, so lines can move. Comments / tracked changes may look odd. |
 | `.html` | No external CSS, images or scripts. Looks plain. |
 | `.txt` `.rtf` `.odt` | Fine. |
@@ -14,11 +14,11 @@
 | Broken file | Always fails (422). |
 | Images, `.pdf`, `.md`, `.epub` | Not supported. |
 
-**Tested for real (small files, LibreOffice):** `.doc` `.docx` `.rtf` `.odt` `.txt` `.html` `.csv`. **Not tested yet:** `.xls` `.xlsx` `.ods` `.ppt` `.pptx` `.odp` and iWork files (`.pages` `.numbers` `.key`).
+**Tested for real (small files, LibreOffice):** `.doc` `.docx` `.rtf` `.odt` `.txt` `.html` `.csv`, and on Fly also `.xlsx` `.ods` `.pptx` (2026-11-26). **Not tested yet:** `.xls` `.ppt` `.odp` and iWork files (`.pages` `.numbers` `.key`).
 
 ## 2. CloudConvert
 - **Tested with a real (live) key:** a small `.docx` and a 1 MB `.docx` worked. A big 1 MB `.doc` failed at CloudConvert (`EXPORT_FAILED`) and LibreOffice did it. Sandbox is untested.
-- **Costs money** per conversion (and has a free daily limit). If the key runs out of credits, every request falls back to LibreOffice, which is slower and gets 503 under load. Watch your balance.
+- **Costs money** per conversion (and has a free daily limit). An Office → PDF conversion costs at least **2 credits**, plus 1 for every minute over the first; only successful ones are charged. The free plan gives 10 credits a day, so about 5 conversions ([pricing](https://cloudconvert.com/pricing), checked 2026-11-26). If the key runs out of credits, every request falls back to LibreOffice, which is slower and gets 503 under load. Watch your balance.
 - **Slower worst case:** CloudConvert times out after 45 s, then LibreOffice runs. A bad file can take ~100 s before it fails.
 - **Privacy:** user files leave our server and go to CloudConvert. We delete the job right after (retry if it fails; CloudConvert keeps it at most 24 hours if all retries fail). It must be in the Privacy Policy (see `LEGAL_NOTES.md`).
 - **Two engines = two looks.** The same file can look a bit different depending on which engine did it.
@@ -26,7 +26,8 @@
 
 ## 3. Fonts
 The Dockerfile now installs Noto fonts (Chinese, Japanese, Korean, Arabic, Hindi and others), emoji, and Carlito/Caladea (look like Calibri/Cambria in Word files). This only matters when LibreOffice does the work (CloudConvert has its own fonts).
-- **Not tested yet:** Docker is not installed on this Mac, so the image was not built. After the first build, convert a file with Chinese, Arabic and emoji and check there are no empty boxes.
+- **Tested on Fly (2026-11-26, LibreOffice):** Cyrillic, Chinese, Japanese, Korean, Arabic and Hindi show correctly. **Emoji are invisible:** the color emoji font is embedded in the PDF but its glyphs come out empty. Possible fix: install `fonts-symbola` (black-and-white emoji) instead of `fonts-noto-color-emoji`.
+- The first LibreOffice conversion on a fresh Fly Machine took ~15 s (LibreOffice starting); the next ones 2–3 s.
 - The image gets bigger (about 200–300 MB more; `fonts-noto-cjk` is the biggest part, 100–150 MB). Total image: about 1.2–1.5 GB (estimate, see README). Some rare fonts (for example Word's own Arial or Times New Roman) are replaced by look-alikes, so line breaks can differ a little.
 
 ## 4. Too many users
@@ -55,6 +56,6 @@ Why (fallback): each conversion starts LibreOffice (5–10 seconds, 150–500 MB
 ## 6. Other
 - First conversion after start is slower (~6 s).
 - Max file size: 50 MB (needs a 2 GB server; see README, Docker). Timeout: 60 s. Both can be changed (`MAX_FILE_MB`, `CONVERT_TIMEOUT_MS`). If you raise the timeouts, also raise the app timeout (240 s now) and check the hosting limit for waiting on a response.
-- Server is not deployed yet. Phones cannot reach `localhost`. Deploy plan: two separate Fly.io apps (Printer 1 and Printer Android), see [DEPLOY_FLY.md](DEPLOY_FLY.md). The files are prepared but **not tested** (no Fly account yet).
+- Both servers run on Fly.io since 2026-11-26: `https://printer1-converter-production.fly.dev` (iOS) and `https://printer-android-converter-production.fly.dev` (Android), see [DEPLOY_FLY.md](DEPLOY_FLY.md). Each uses its own paid CloudConvert account.
 - Each product needs its own `API_KEY`, Upstash database and CloudConvert key. If two products share any of them, they are not isolated.
 - The code is on GitHub. Push after each commit so it stays backed up.

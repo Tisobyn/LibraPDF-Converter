@@ -1,7 +1,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { writeFile, mkdtemp, chmod } from "node:fs/promises";
+import { writeFile, mkdtemp, chmod, access } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import http from "node:http";
@@ -114,6 +114,54 @@ test("the real server program exits before listening when API_KEY is empty or bl
     assert.equal(r.status, 1, `exit code for API_KEY="${bad}"`);
     assert.match(r.stderr, /API_KEY/);
     assert.doesNotMatch(r.stdout, /listening/);
+  }
+});
+
+test("on SIGINT the real server program finishes requests in progress, refuses new ones, then exits 0", async () => {
+  const { spawn } = await import("node:child_process");
+  const dir = await mkdtemp(path.join(tmpdir(), "stop-"));
+  const started = path.join(dir, "started");
+  const script = path.join(dir, "soffice");
+  // Fake LibreOffice: marks that it started, works for 1 s, then writes a PDF into --outdir.
+  await writeFile(script, `#!/bin/sh
+out=""; prev=""
+for a in "$@"; do [ "$prev" = "--outdir" ] && out="$a"; prev="$a"; done
+touch "${started}"
+sleep 1
+printf '%%PDF-1.4 fake' > "$out/input.pdf"
+`);
+  await chmod(script, 0o755);
+  const child = spawn(process.execPath, ["src/server.js"], {
+    env: { PATH: process.env.PATH, API_KEY: "k", RATE_LIMIT_DISABLED: "true", PORT: "0", SOFFICE_PATH: script },
+  });
+  const exited = new Promise((r) => child.on("exit", (code) => r(code)));
+  let out = "";
+  child.stdout.on("data", (d) => (out += d));
+  child.stderr.on("data", (d) => (out += d));
+  const waitFor = async (check, what) => {
+    for (let i = 0; i < 200; i++) {
+      const value = await check();
+      if (value) return value;
+      await new Promise((r) => setTimeout(r, 25));
+    }
+    throw new Error(`timed out waiting for ${what}. Server output:\n${out}`);
+  };
+  try {
+    const port = await waitFor(() => out.match(/listening on :(\d+)/)?.[1], "the server to start");
+    const form = new FormData();
+    form.append("file", new Blob(["hello"]), "a.txt");
+    const inProgress = fetch(`http://localhost:${port}/convert`, { method: "POST", body: form, headers: { "x-api-key": "k" } });
+    await waitFor(() => access(started).then(() => true, () => false), "the conversion to start");
+
+    child.kill("SIGINT");
+    await waitFor(() => fetch(`http://localhost:${port}/health`).then(() => false, () => true), "new connections to be refused");
+
+    const r = await inProgress;
+    assert.equal(r.status, 200);
+    assert.equal(Buffer.from(await r.arrayBuffer()).subarray(0, 5).toString(), "%PDF-");
+    assert.equal(await exited, 0);
+  } finally {
+    if (child.exitCode === null) child.kill("SIGKILL");
   }
 });
 

@@ -79,11 +79,11 @@ docker run -p 3000:3000 --read-only --tmpfs /tmp --cap-drop ALL \
 > 💡 If you can, also block the container's outbound network at the host or firewall level.
 
 ### 🏢 Two products, two servers
-Printer 1 and Printer Android must have separate servers. One repository, two Fly.io apps, each with its own hostname, `API_KEY`, Redis database and CloudConvert key, deployed together by one workflow. See [docs/DEPLOY_FLY.md](docs/DEPLOY_FLY.md).
+Printer 1 (iOS) and Printer Android must have separate servers. One repository, two Fly.io apps, each with its own hostname, `API_KEY`, Redis database and CloudConvert key, deployed together by one workflow. See [docs/DEPLOY_FLY.md](docs/DEPLOY_FLY.md).
 
 ### 📦 How big is it, and what hosting do I need?
 
-These are **estimates** (Docker is not installed on the dev Mac, so the image was not built yet). After your first build, run `docker images air-printer-converter` to see the real size.
+**Measured:** the first build on Fly (2026-11-26) gave a **338 MB** image (compressed, as stored in the registry). The unpacked sizes below are still **estimates**.
 
 | Part of the image | Size on disk |
 |---|---|
@@ -91,7 +91,7 @@ These are **estimates** (Docker is not installed on the dev Mac, so the image wa
 | LibreOffice (Writer, Calc, Impress) | ~500–700 MB |
 | Fonts (Noto incl. Chinese/Japanese/Korean, emoji, Carlito/Caladea) | ~200–300 MB |
 | Our code and packages | ~10 MB |
-| **Total** | **~1.2–1.5 GB** (about 0.5–0.7 GB compressed in a registry) |
+| **Total** | **~1.2–1.5 GB** (338 MB compressed, measured) |
 
 Without `fonts-noto-cjk` it is about 100–150 MB smaller (but Chinese, Japanese and Korean show as empty boxes).
 
@@ -156,13 +156,13 @@ Errors are JSON: `{"error": "message"}`
 ```bash
 npm test
 ```
-25 tests (CloudConvert and Redis are tested against fake local servers, no real keys needed). The real-conversion tests are skipped if `soffice` is not installed.
+26 tests (CloudConvert and Redis are tested against fake local servers, no real keys needed). The real-conversion tests are skipped if `soffice` is not installed.
 
 ## 🗂 Project structure
 
 ```
 src/
-  server.js     starts the server
+  server.js     starts the server; on SIGINT/SIGTERM finishes requests in progress, then exits
   app.js        routes
   convert.js    picks the engine: CloudConvert, then LibreOffice (timeout, locked-down profile)
   cloudconvert.js  CloudConvert API client
@@ -183,16 +183,18 @@ fly.printer1.toml, fly.printer-android.toml   Fly.io settings, one per product
 | Done | Still to do |
 |---|---|
 | ✅ Convert API, validation, tests | ⬜ Fix big `.doc` failing at CloudConvert |
-| ✅ CloudConvert first, LibreOffice fallback | ⬜ Test .xlsx, .pptx, .ods, .odp and iWork files (.csv .html .odt .rtf work) |
-| ✅ Docs and diagrams | ⬜ Check the new fonts after the first Docker build (CJK, Arabic, emoji) |
-| ✅ Fonts added to the Dockerfile (CJK, Arabic, emoji) | ⬜ Measure the real image size after the first build |
+| ✅ CloudConvert first, LibreOffice fallback | ⬜ Test .xls, .ppt, .odp and iWork files |
+| ✅ Docs and diagrams | ⬜ LibreOffice on Fly: emoji invisible, UTF-8 `.csv` with non-Latin text garbled |
+| ✅ Fonts added to the Dockerfile; LibreOffice on Fly checked (CJK, Arabic, Hindi OK) | |
 | ✅ Real CloudConvert test (live key) | ⬜ Stronger caller check (Apple App Attest) |
-| ✅ Rate limit per device (Upstash Redis), tested live | ⬜ Move the Upstash and CloudConvert keys to the hosting settings |
+| ✅ Rate limit per device (Upstash Redis), tested live | ⬜ Deploy from GitHub (deploy tokens, Environments) |
+| ✅ Production Upstash databases and paid CloudConvert accounts for both apps | |
+| ✅ Graceful stop on deploy (finishes conversions in progress) | |
 | | ⬜ Isolate LibreOffice files per job (separate container or sandbox) |
 | ✅ Required `API_KEY`, upload limits (count + MB), safer LibreOffice | ⬜ Sandbox test of CloudConvert |
 | ✅ Swift `ConverterService` (retry on 503, PDF skips server) | ⬜ Build it in Xcode and run on a device |
-| ✅ Docker image written (Node 26) | ⬜ Build and test the Docker image (Docker not installed here) |
-| ✅ Fly.io files for two apps + deploy workflow (not tested) | ⬜ Get the Fly organization, create both apps, deploy, HTTPS, set secrets |
+| ✅ Docker image built on Fly (Node 26, 338 MB) | |
+| ✅ Both Fly apps deployed and checked (2026-11-26), secrets in Fly | |
 | | ⬜ Connect the iOS and Android apps |
 | | ⬜ Final Privacy Policy and Terms |
 
@@ -202,7 +204,7 @@ fly.printer1.toml, fly.printer-android.toml   Fly.io settings, one per product
 | File | For |
 |---|---|
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Diagrams: how a request flows. PDF: [AirPrinter-Converter-Diagrams.pdf](docs/AirPrinter-Converter-Diagrams.pdf) |
-| [DEPLOY_FLY.md](docs/DEPLOY_FLY.md) | Deploy two separate Fly.io apps (Printer 1 and Printer Android), one workflow for both. Prepared, not tested |
+| [DEPLOY_FLY.md](docs/DEPLOY_FLY.md) | Deploy two separate Fly.io apps (Printer 1 for iOS, Printer Android), one workflow for both. Step-by-step; both apps deployed |
 | [SWIFT_INTEGRATION.md](docs/SWIFT_INTEGRATION.md) | iOS and Android developers: how to connect. Code: [ConverterService.swift](docs/ConverterService.swift) |
 | [KNOWN_PROBLEMS.md](docs/KNOWN_PROBLEMS.md) | Format, font, scaling and security limits |
 | [TECH_STACK.md](docs/TECH_STACK.md) | What we use and which versions |

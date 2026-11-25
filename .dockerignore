@@ -1,4 +1,16 @@
 node_modules
 tmp
-.env
 .DS_Store
+
+# Secrets: never send them to the image builder
+.env
+*.secrets.env
+**/*.env
+
+# Not needed in the image
+.git
+.github
+docs
+test
+scripts
+pnpm-lock.yaml

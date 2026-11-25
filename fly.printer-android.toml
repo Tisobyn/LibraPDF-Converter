@@ -1,10 +1,13 @@
-# Fly.io settings for Printer Android.
-# CHANGE the app name below to the real one (fly apps create <name>).
+# Fly.io settings for Printer Android (the Android app).
+# If `fly apps create` says the name is taken, change it here and in docs/DEPLOY_FLY.md.
 # Secrets (API_KEY, UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, CLOUDCONVERT_API_KEY)
-# are NOT here. Set them with: fly secrets import -a printer-android-converter  (see docs/DEPLOY_FLY.md)
+# are NOT here. Set them with: fly secrets import -a printer-android-converter-production  (see docs/DEPLOY_FLY.md)
 
-app = "printer-android-converter"
+app = "printer-android-converter-production"
 primary_region = "fra"   # Frankfurt, close to the Upstash database
+# On deploy/restart Fly sends SIGINT, waits this long, then kills. The server uses this time to
+# finish conversions in progress (src/server.js). 240 s = the mobile client's timeout. Fly max: 300 s.
+kill_timeout = "240s"
 
 [build]
   dockerfile = "Dockerfile"
@@ -18,9 +21,17 @@ primary_region = "fra"   # Frankfurt, close to the Upstash database
 [http_service]
   internal_port = 3000
   force_https = true
-  auto_stop_machines = "off"
+  # 2 Machines (created by the first deploy): one always runs, the other is a stopped spare.
+  # Fly starts the spare when the first one is busy (over soft_limit), down, or being deployed,
+  # and stops it again when traffic is low. A stopped Machine costs only its disk.
+  auto_stop_machines = "stop"
   auto_start_machines = true
   min_machines_running = 1
+
+  # A conversion can take ~105 s (CloudConvert 45 s, then LibreOffice 60 s) before the first byte
+  # of the answer. Don't let Fly's proxy close the connection as idle before that.
+  [http_service.http_options]
+    idle_timeout = 300
 
   [http_service.concurrency]
     type = "requests"
