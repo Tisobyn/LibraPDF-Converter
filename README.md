@@ -1,4 +1,4 @@
-<h1 align="center">📄 air-printer-converter</h1>
+<h1 align="center">📄 LibraPDF-Converter</h1>
 
 <p align="center">
   Backend for the <b>Air Printer "Convertation"</b> feature.<br>
@@ -70,10 +70,10 @@ scripts/to-desktop.sh ~/Downloads/report.docx
 Documents are untrusted input, so run it locked down:
 
 ```bash
-docker build -t air-printer-converter .
+docker build -t librapdf-converter .
 docker run -p 3000:3000 --read-only --tmpfs /tmp --cap-drop ALL \
   --security-opt no-new-privileges --memory 2g --cpus 2 --pids-limit 256 \
-  -e API_KEY=change-me -e CLOUDCONVERT_API_KEY=your-key air-printer-converter
+  -e API_KEY=change-me -e CLOUDCONVERT_API_KEY=your-key librapdf-converter
 ```
 
 > 💡 If you can, also block the container's outbound network at the host or firewall level.
@@ -83,7 +83,7 @@ Printer 1 and Printer Android must have separate servers. One repository, two Fl
 
 ### 📦 How big is it, and what hosting do I need?
 
-These are **estimates** (Docker is not installed on the dev Mac, so the image was not built yet). After your first build, run `docker images air-printer-converter` to see the real size.
+These are **estimates** (Docker is not installed on the dev Mac, so the image was not built yet). After your first build, run `docker images librapdf-converter` to see the real size.
 
 | Part of the image | Size on disk |
 |---|---|
