@@ -8,7 +8,6 @@
 <p align="center">
   <img alt="Node" src="https://img.shields.io/badge/Node-%E2%89%A524-339933?logo=node.js&logoColor=white">
   <img alt="Express" src="https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white">
-  <img alt="CloudConvert" src="https://img.shields.io/badge/CloudConvert-API%20v2-2f6fdb">
   <img alt="LibreOffice" src="https://img.shields.io/badge/LibreOffice-headless-18A303?logo=libreoffice&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white">
 </p>
@@ -18,14 +17,12 @@
 ## ✨ What it does
 
 ```
- iOS / Android app ──(file)──▶ server ──▶ ☁️ CloudConvert ──▶ 📕 PDF ──▶ app
-                                  │             ✖ fails / no key / timeout
-                                  └──▶ 🖥 our LibreOffice ──▶ 📕 PDF ──▶ app
+ iOS / Android app ──(file)──▶ server ──▶ 🖥 our LibreOffice ──▶ 📕 PDF ──▶ app
 ```
 
-The response header `X-Converted-By` says which engine did the job: `cloudconvert` or `libreoffice`.
+The response header `X-Converted-By` is always `libreoffice`.
 
-Files are checked, converted, and **deleted right after** (also at CloudConvert; if that delete fails we retry, and CloudConvert removes it itself after 24 hours). No database, no accounts.
+Files are checked, converted on our own server, and **deleted right after**. They never go to another service. No database, no accounts.
 
 ## 📚 Supported formats
 
@@ -51,8 +48,7 @@ export SOFFICE_PATH=/Applications/LibreOffice.app/Contents/MacOS/soffice
 npm install
 API_KEY=change-me RATE_LIMIT_DISABLED=true npm start
 ```
-That is the quick local test (no Redis, no rate limit). For the real setup, copy `.env.example` to `.env`, fill in `API_KEY`, the two `UPSTASH_REDIS_REST_*` values and (optional) `CLOUDCONVERT_API_KEY`, then run `npm run start:env`.
-Without a CloudConvert key the server uses only LibreOffice.
+That is the quick local test (no Redis, no rate limit). For the real setup, copy `.env.example` to `.env`, fill in `API_KEY`, and the two `UPSTASH_REDIS_REST_*` values, then run `npm run start:env`.
 
 **3. Convert a file**
 ```bash
@@ -73,13 +69,13 @@ Documents are untrusted input, so run it locked down:
 docker build -t librapdf-converter .
 docker run -p 3000:3000 --read-only --tmpfs /tmp --cap-drop ALL \
   --security-opt no-new-privileges --memory 2g --cpus 2 --pids-limit 256 \
-  -e API_KEY=change-me -e CLOUDCONVERT_API_KEY=your-key librapdf-converter
+  -e API_KEY=change-me librapdf-converter
 ```
 
 > 💡 If you can, also block the container's outbound network at the host or firewall level.
 
 ### 🏢 Two products, two servers
-Printer 1 and Printer Android must have separate servers. One repository, two Fly.io apps, each with its own hostname, `API_KEY`, Redis database and CloudConvert key, deployed together by one workflow. See [docs/DEPLOY_FLY.md](docs/DEPLOY_FLY.md).
+Printer 1 and Printer Android must have separate servers. One repository, two Fly.io apps, each with its own hostname, `API_KEY` and Redis database, deployed together by one workflow. See [docs/DEPLOY_FLY.md](docs/DEPLOY_FLY.md).
 
 ### 📦 How big is it, and what hosting do I need?
 
@@ -102,7 +98,7 @@ Without `fonts-noto-cjk` it is about 100–150 MB smaller (but Chinese, Japanese
 | Disk | 4 GB or more free |
 | Price | about $10–15 per month for a 2 GB plan (check your host) |
 
-CloudConvert and Upstash run on their own servers and use no space here.
+Upstash runs on its own servers and uses no space here.
 
 ## 🔌 API
 
@@ -147,16 +143,13 @@ Errors are JSON: `{"error": "message"}`
 | `MAX_CONCURRENT` | `2` | Conversions at the same time |
 | `CONVERT_TIMEOUT_MS` | `60000` | Kill a conversion after this time. Seeing many `504`? Try `90000` |
 | `SOFFICE_PATH` | `soffice` | Path to the LibreOffice binary |
-| `CLOUDCONVERT_API_KEY` | – | Turns on CloudConvert as the first engine. Without it, only LibreOffice is used |
-| `CLOUDCONVERT_SANDBOX` | `false` | `true` = use CloudConvert sandbox (free testing) |
-| `CLOUDCONVERT_TIMEOUT_MS` | `45000` | Give up on CloudConvert after this time, then fall back. Big files may need `90000`. Keep the app timeout (240 s) longer than the two timeouts together |
 
 ## 🧪 Tests
 
 ```bash
 npm test
 ```
-25 tests (CloudConvert and Redis are tested against fake local servers, no real keys needed). The real-conversion tests are skipped if `soffice` is not installed.
+21 tests (Redis is tested against a fake local server, no real keys needed). The real-conversion tests are skipped if `soffice` is not installed.
 
 ## 🗂 Project structure
 
@@ -164,8 +157,7 @@ npm test
 src/
   server.js     starts the server
   app.js        routes
-  convert.js    picks the engine: CloudConvert, then LibreOffice (timeout, locked-down profile)
-  cloudconvert.js  CloudConvert API client
+  convert.js    converts with LibreOffice (timeout, locked-down profile)
   ratelimit.js  rate limit per device (Upstash Redis)
   validate.js   checks file content matches its extension
 test/           node:test suite
@@ -182,14 +174,13 @@ fly.printer1.toml, fly.printer-android.toml   Fly.io settings, one per product
 
 | Done | Still to do |
 |---|---|
-| ✅ Convert API, validation, tests | ⬜ Fix big `.doc` failing at CloudConvert |
-| ✅ CloudConvert first, LibreOffice fallback | ⬜ Test .xlsx, .pptx, .ods, .odp and iWork files (.csv .html .odt .rtf work) |
+| ✅ Convert API, validation, tests | ⬜ Test .xlsx, .pptx, .ods, .odp and iWork files (.csv .html .odt .rtf work) |
 | ✅ Docs and diagrams | ⬜ Check the new fonts after the first Docker build (CJK, Arabic, emoji) |
 | ✅ Fonts added to the Dockerfile (CJK, Arabic, emoji) | ⬜ Measure the real image size after the first build |
-| ✅ Real CloudConvert test (live key) | ⬜ Stronger caller check (Apple App Attest) |
-| ✅ Rate limit per device (Upstash Redis), tested live | ⬜ Move the Upstash and CloudConvert keys to the hosting settings |
+| ✅ LibreOffice only (CloudConvert removed) | ⬜ Stronger caller check (Apple App Attest) |
+| ✅ Rate limit per device (Upstash Redis), tested live | ⬜ Move the Upstash keys to the hosting settings |
 | | ⬜ Isolate LibreOffice files per job (separate container or sandbox) |
-| ✅ Required `API_KEY`, upload limits (count + MB), safer LibreOffice | ⬜ Sandbox test of CloudConvert |
+| ✅ Required `API_KEY`, upload limits (count + MB), safer LibreOffice | |
 | ✅ Swift `ConverterService` (retry on 503, PDF skips server) | ⬜ Build it in Xcode and run on a device |
 | ✅ Docker image written (Node 26) | ⬜ Build and test the Docker image (Docker not installed here) |
 | ✅ Fly.io files for two apps + deploy workflow (not tested) | ⬜ Get the Fly organization, create both apps, deploy, HTTPS, set secrets |

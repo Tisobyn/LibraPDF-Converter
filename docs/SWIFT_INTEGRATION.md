@@ -11,8 +11,7 @@ You send a document to the server. The server sends back a PDF.
 - Header: `X-API-Key: <key>` (always required; the server will not start without an `API_KEY`)
 - Header: `X-Device-ID: <random id>` (always required; 16–64 letters, digits or dashes). The app makes it once per install. `ConverterService` does this for you. The server counts requests per ID.
 - Success: status **200**, body is the PDF bytes
-- Header `X-Converted-By` in the response: `cloudconvert` or `libreoffice` (for debugging, the app can ignore it)
-- The server tries CloudConvert first and LibreOffice second. The app does not choose.
+- Header `X-Converted-By` in the response: always `libreoffice` (for debugging, the app can ignore it)
 
 ## Steps
 1. Get the file URL (e.g. from `.fileImporter`).
@@ -49,8 +48,8 @@ Errors come as JSON: `{"error": "message"}`.
 - Run the server: `API_KEY=change-me npm start` in the converter folder (or `npm run start:env` with a `.env` file). Needs LibreOffice installed.
 
 ## Rules
-- Set the request timeout to ~240 seconds. Normal: 5–30 seconds. Worst case (CloudConvert fails, then LibreOffice): about 105 seconds with default server timeouts (45 s + 60 s).
-- The app timeout must always be longer than `CLOUDCONVERT_TIMEOUT_MS` + `CONVERT_TIMEOUT_MS` on the server. If you raise those, raise this too.
+- Set the request timeout to ~240 seconds. Normal: 5–30 seconds. Worst case: about 60 seconds with the default server timeout.
+- The app timeout must always be longer than `CONVERT_TIMEOUT_MS` on the server. If you raise it, raise this too.
 - Show a loading spinner.
 - Do not hardcode the API key in committed code.
 - Check the extension on the phone before uploading. Saves a round trip.
@@ -60,7 +59,7 @@ Errors come as JSON: `{"error": "message"}`.
 Copy [ConverterService.swift](ConverterService.swift) into your Xcode project (async/await, about 70 lines).
 
 ```swift
-// baseURL: your server. apiKey: the server's API_KEY from .env (NOT the CloudConvert key).
+// baseURL: your server. apiKey: the server's API_KEY from .env.
 let service = ConverterService(baseURL: URL(string: "http://localhost:3000")!, apiKey: "change-me")
 
 // pickedURL: the file URL the user chose, e.g. from .fileImporter
@@ -79,5 +78,3 @@ Example with `.fileImporter` in SwiftUI:
     }
 }
 ```
-
-The CloudConvert key stays on the server. The app never sees it.

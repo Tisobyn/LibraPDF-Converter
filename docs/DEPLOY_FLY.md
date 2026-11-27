@@ -5,7 +5,7 @@
 
 ## The idea
 - Two Fly apps from **one repository and one Dockerfile**: one for Printer 1, one for Printer Android.
-- Each app has **its own** secrets, Redis database, CloudConvert key and hostname.
+- Each app has **its own** secrets, Redis database and hostname.
 - One GitHub workflow deploys the **same revision** to both apps.
 - Each mobile app uses **only its own hostname**, from upload to PDF.
 
@@ -16,7 +16,6 @@
 | Hostname (placeholder) | `converter.printer1.example.com` | `converter.printer-android.example.com` |
 | `API_KEY` | its own | its own |
 | Upstash Redis database | its own | its own |
-| CloudConvert key | its own | its own |
 | GitHub environment + `FLY_API_TOKEN` | `printer1` | `printer-android` |
 
 ## Step 0: get access (only people can do this)
@@ -33,7 +32,7 @@ fly apps create printer-android-converter --org YOUR-ORG
 ```
 
 ## Step 2: make a secrets file for each product
-Make one Upstash Redis database per product (Frankfurt, free plan). Make one CloudConvert API key per product (scopes: `user.read`, `task.read`, `task.write`).
+Make one Upstash Redis database per product (Frankfurt, free plan).
 
 Create a file `printer1.secrets.env` **outside the repository** (or in the repo; `*.secrets.env` is in `.gitignore`):
 
@@ -41,7 +40,6 @@ Create a file `printer1.secrets.env` **outside the repository** (or in the repo;
 API_KEY=<a long random string>
 UPSTASH_REDIS_REST_URL=https://...upstash.io
 UPSTASH_REDIS_REST_TOKEN=...
-CLOUDCONVERT_API_KEY=...
 ```
 
 Make the `API_KEY` with `openssl rand -hex 24`. **Use a different one for each product.**
@@ -96,7 +94,7 @@ curl https://converter.printer1.example.com/health
 
 curl -D - -H "X-API-Key: <that product's API_KEY>" -H "X-Device-ID: check-device-0000000001" \
   -F file=@report.docx https://converter.printer1.example.com/convert -o report.pdf
-# expect: 200, X-Converted-By: cloudconvert (or libreoffice)
+# expect: 200, X-Converted-By: libreoffice
 ```
 
 Also check that Printer 1's `API_KEY` does **not** work on the Printer Android hostname (you should get `401`).
@@ -115,7 +113,6 @@ let service = ConverterService(baseURL: URL(string: "https://converter.printer1.
 - [ ] Two Fly apps, two hostnames
 - [ ] Different `API_KEY` for each
 - [ ] Different Upstash database for each
-- [ ] Different CloudConvert key for each
 - [ ] Different `FLY_API_TOKEN` per GitHub environment
 - [ ] Each mobile app points only to its own hostname
 - [ ] Printer 1's key gives `401` on the Android hostname, and the other way round

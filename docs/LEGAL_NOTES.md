@@ -3,14 +3,14 @@
 > Not legal advice. Have a lawyer check the final text. Facts below are based on how the server works today.
 
 ## Two products
-Printer 1 and Printer Android each have their own server, Redis database and CloudConvert account. Write and publish a Privacy Policy and Terms for **each** product, and name the right services for each one.
+Printer 1 and Printer Android each have their own server and Redis database. Write and publish a Privacy Policy and Terms for **each** product, and name the right services for each one.
 
 ## What actually happens with user data
 1. User picks a document in the app.
 2. The app uploads it to our server over HTTPS.
-3. The server sends it to **CloudConvert** (a third-party service) to convert it. If that fails, our own server converts it.
+3. Our own server converts it with LibreOffice. The file is not sent to any other service.
 4. The PDF comes back to the app.
-5. Our server deletes its copies right after (also after errors). We ask CloudConvert to delete the job right away and retry if it fails; CloudConvert's own retention rules (up to 24 hours) apply if that still fails.
+5. Our server deletes its copies right after (also after errors).
 
 Our server does **not** save file contents, read them or log them. It has no user accounts and no file database. To limit abuse it keeps a random per-install device ID and request counters in Upstash Redis for up to 2 days. Mention this in the Privacy Policy.
 
@@ -23,22 +23,21 @@ Our server does **not** save file contents, read them or log them. It has no use
 1. **What we collect when you use Convert:** the document you choose to convert. Technical data: IP address, time of request, file size, errors (in server logs).
 2. **Why:** only to convert your file to PDF.
 3. **Where it goes:** sent to our server (and our hosting provider: name them) over an encrypted connection.
-4. **How long we keep it:** our server deletes the document right after conversion. We ask CloudConvert to delete it at the same time; if that fails, CloudConvert deletes it itself within 24 hours after the job ends. Logs (without file content) are kept for [X days: check hosting settings].
+4. **How long we keep it:** our server deletes the document right after conversion. Logs (without file content) are kept for [X days: check hosting settings].
 5. **We do not:** read your documents, sell them, use them for ads or use them to train AI.
-6. **Third parties:** hosting provider (Fly.io: check the exact company name), **CloudConvert** (CloudConvert Pty Ltd, converts your file; link to their privacy policy) and **Upstash** (keeps a random device ID and request counters for up to 2 days to limit abuse; it never gets your files). No other service gets your files.
+6. **Third parties:** hosting provider (Fly.io: check the exact company name) and **Upstash** (keeps a random device ID and request counters for up to 2 days to limit abuse; it never gets your files). No other service gets your files.
 7. **Your rights:** (GDPR / CCPA) ask what we hold, ask us to delete it, contact: [email].
 8. **Children:** [your app's age rule].
 9. **Changes:** how you will tell users about policy updates.
 10. **Contact:** [email].
 
-Tip: the user chooses to send the file. Say clearly in the app, before the first upload: "Your document is sent to our server for conversion and deleted right after (at most 24 hours at our conversion partner)."
+Tip: the user chooses to send the file. Say clearly in the app, before the first upload: "Your document is sent to our server for conversion and deleted right after."
 
 ## App Store "App Privacy" (Connect form)
 - **User Content → Other User Content:** yes, collected (the uploaded document).
 - Used for: **App Functionality** only.
 - Linked to the user's identity: **No**, if you add no accounts or IDs to the request.
 - Used for tracking: **No**.
-- CloudConvert receives the document too: it is a processor of that data. Declare it as shared with a third party service for app functionality.
 - If the server logs IP addresses, also declare that data (identifiers / diagnostics), as your hosting logs it.
 
 ---
@@ -61,7 +60,6 @@ Tip: the user chooses to send the file. Say clearly in the app, before the first
 
 ## Before you publish
 - [ ] Fill in every [bracket].
-- [ ] Read CloudConvert's privacy / data-processing terms (retention, region, GDPR DPA) and sign their DPA if you have EU users.
 - [ ] Confirm the log retention of your hosting provider.
 - [ ] Put the policy URL in App Store Connect and inside the app.
 - [ ] Add the one-line notice before the first upload.

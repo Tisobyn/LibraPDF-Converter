@@ -1,6 +1,6 @@
 # Fly.io settings for Printer 1.
 # CHANGE the app name below to the real one (fly apps create <name>).
-# Secrets (API_KEY, UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN, CLOUDCONVERT_API_KEY)
+# Secrets (API_KEY, UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN)
 # are NOT here. Set them with: fly secrets import -a printer1-converter  (see docs/DEPLOY_FLY.md)
 
 app = "printer1-converter"
